@@ -4,9 +4,10 @@ module.exports = {
     ...baseConfig,
     ignorePaths: [
         ...baseConfig.ignorePaths,
-        '**/dist-action/',
+        '**/dist/',
     ],
     words: [
         ...baseConfig.words,
+        'openapi',
     ],
 };

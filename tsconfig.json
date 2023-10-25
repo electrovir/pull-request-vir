@@ -8,6 +8,7 @@
     "exclude": [
         "./configs",
         "./coverage",
+        "./dist-action",
         "./dist",
         "./node_modules",
         "./test-files",

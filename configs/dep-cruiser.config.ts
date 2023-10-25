@@ -9,6 +9,11 @@ const baseConfig = generateDepCruiserConfig({
                 'src/index.ts',
             ],
         },
+        'not-to-unresolvable': {
+            to: [
+                '@octokit/openapi-types',
+            ],
+        },
     },
     omitRules: [
         // enter rule names here to omit
