@@ -1,8 +1,14 @@
 {
     "name": "pull-request-vir",
-    "version": "0.0.0",
-    "description": "GitHub Action for pull request reviews",
-    "keywords": [],
+    "version": "0.0.2",
+    "description": "GitHub Action for pull requests",
+    "keywords": [
+        "github",
+        "actions",
+        "pull request",
+        "review",
+        "automated"
+    ],
     "homepage": "https://github.com/electrovir/pull-request-vir",
     "bugs": {
         "url": "https://github.com/electrovir/pull-request-vir/issues"
@@ -19,8 +25,7 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
-        "build": "ncc build src/index.ts --license licenses.txt --out dist-action",
-        "compile": "virmator compile",
+        "compile": "virmator compile && rm -rf ./dist-action && virmator compile --outDir ./dist-action",
         "docs": "virmator docs",
         "format": "virmator format",
         "publish": "virmator publish \"npm run compile && npm run test:all\"",
@@ -37,7 +42,11 @@
         "@actions/core": "^1.10.1",
         "@actions/github": "^6.0.0",
         "@augment-vir/common": "^21.3.6",
+        "@augment-vir/node-js": "^21.3.6",
+        "@octokit/openapi-types": "^19.0.2",
         "@swc/core": "^1.3.95",
+        "object-shape-tester": "^1.0.1",
+        "simple-git": "^3.20.0",
         "typescript": "^5.2.2"
     },
     "devDependencies": {
@@ -46,7 +55,6 @@
         "@types/chai": "^4.3.9",
         "@types/mocha": "^10.0.3",
         "@types/node": "^20.8.8",
-        "@vercel/ncc": "^0.38.1",
         "chai": "^4.3.10",
         "cspell": "^7.3.8",
         "dependency-cruiser": "^15.0.0",

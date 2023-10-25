@@ -1,4 +1,9 @@
+name: 'test-this-action'
+
 on: [push]
+
+permissions:
+    contents: write
 
 jobs:
     test-this-action:
@@ -7,11 +12,16 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v4
+            - name: Use Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version-file: '.nvmrc'
+            - name: Install node_modules
+              run: npm ci
             - name: Run the action
               uses: ./
               id: internal-action
               with:
-                  config-file: '../my-file.ts'
-            # Use the output from the `hello` step
-            - name: Get the output time
-              run: echo "The time was ${{ steps.hello.outputs.time }}"
+                  config-file: 'configs/internal-action.config.ts'
+            - name: Get the output status
+              run: echo "The status was ${{ steps.internal-action.outputs.status }}"

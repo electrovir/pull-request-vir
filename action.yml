@@ -9,4 +9,4 @@ outputs:
         description: 'The result of the checks'
 runs:
     using: 'node20'
-    main: 'dist-action/index.js'
+    main: 'dist-action/action/run-action.js'
