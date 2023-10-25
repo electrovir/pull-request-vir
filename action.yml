@@ -1,0 +1,12 @@
+name: 'pull-request-vir'
+description: 'Handle pull request reviews, assignments, and ability to merge.'
+inputs:
+    config-file:
+        description: 'TypeScript config file'
+        required: true
+outputs:
+    status:
+        description: 'The result of the checks'
+runs:
+    using: 'node20'
+    main: 'dist-action/index.js'

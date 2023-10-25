@@ -1,0 +1,17 @@
+on: [push]
+
+jobs:
+    test-this-action:
+        runs-on: ubuntu-latest
+        name: Test this action
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Run the action
+              uses: ./
+              id: internal-action
+              with:
+                  config-file: '../my-file.ts'
+            # Use the output from the `hello` step
+            - name: Get the output time
+              run: echo "The time was ${{ steps.hello.outputs.time }}"
