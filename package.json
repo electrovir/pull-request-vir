@@ -1,6 +1,6 @@
 {
     "name": "pull-request-vir",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "GitHub Action for pull requests",
     "keywords": [
         "github",
@@ -25,7 +25,7 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
-        "compile": "virmator compile && rm -rf ./dist-action && virmator compile --outDir ./dist-action",
+        "compile": "rm -rf ./dist-action && virmator compile --outDir ./dist-action && virmator compile",
         "docs": "virmator docs",
         "format": "virmator format",
         "publish": "virmator publish \"npm run compile && npm run test:all\"",

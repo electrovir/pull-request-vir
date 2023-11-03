@@ -1,5 +1,8 @@
 name: 'pull-request-vir'
 description: 'Handle pull request reviews, assignments, and ability to merge.'
+branding:
+    icon: 'git-pull-request'
+    color: 'blue'
 inputs:
     config-file:
         description: 'TypeScript config file'
