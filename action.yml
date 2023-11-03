@@ -12,4 +12,4 @@ outputs:
         description: 'The result of the checks'
 runs:
     using: 'node20'
-    main: 'dist-action/action/run-action.js'
+    main: 'dist-action/action/action-entry-point.js'

@@ -22,7 +22,3 @@ export async function runAction() {
         setFailed(extractErrorMessage(error));
     }
 }
-
-if (require.main === module) {
-    runAction();
-}
