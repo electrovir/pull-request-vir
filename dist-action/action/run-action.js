@@ -24,6 +24,3 @@ async function runAction() {
     }
 }
 exports.runAction = runAction;
-if (require.main === module) {
-    runAction();
-}
