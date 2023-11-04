@@ -3,7 +3,7 @@ import {SimpleGit} from 'simple-git';
 import {listGitDiff} from '../../util/git-diff';
 
 export async function applyFormatting(git: SimpleGit, command: string, cwd: string) {
-    log.info('Running format...');
+    log.info('Applying format...');
     const initialChanges = await listGitDiff(git);
 
     if (initialChanges.length) {

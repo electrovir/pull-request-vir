@@ -10,9 +10,12 @@ inputs:
     token:
         description: 'Token used to access the repo with'
         default: ${{ github.token }}
-    workflow-file-name:
-        description: 'Token used to access the repo with'
-        default: ${{ github.token }}
+    branch-name:
+        description: >
+            Extracts the branch name from the github context.
+            You should not need to ever manually set this.
+            In fact, doing so will probably mess stuff up.
+        default: ${{ github.head_ref || github.ref_name }}
 outputs:
     status:
         description: 'The result of the checks'
