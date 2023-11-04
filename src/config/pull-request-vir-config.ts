@@ -5,6 +5,9 @@ export const pullRequestVirConfigShape = defineShape({
     applyFormatting: or(undefined, {
         command: '',
     }),
+    triggerWorkflow: or(undefined, {
+        fileName: '',
+    }),
 });
 
 /** Config type expected by pull-request-vir. */

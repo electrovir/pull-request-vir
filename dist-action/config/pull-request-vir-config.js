@@ -7,6 +7,9 @@ exports.pullRequestVirConfigShape = (0, object_shape_tester_1.defineShape)({
     applyFormatting: (0, object_shape_tester_1.or)(undefined, {
         command: '',
     }),
+    triggerWorkflow: (0, object_shape_tester_1.or)(undefined, {
+        fileName: '',
+    }),
 });
 /** Default value for config type expected by pull-request-vir. */
 exports.defaultPullRequestVirConfig = exports.pullRequestVirConfigShape.defaultValue;

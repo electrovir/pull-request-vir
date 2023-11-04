@@ -3,6 +3,7 @@ import {SimpleGit} from 'simple-git';
 import {listGitDiff} from '../../util/git-diff';
 
 export async function applyFormatting(git: SimpleGit, command: string, cwd: string) {
+    log.info('Running format...');
     const initialChanges = await listGitDiff(git);
 
     if (initialChanges.length) {
@@ -15,9 +16,13 @@ export async function applyFormatting(git: SimpleGit, command: string, cwd: stri
     const formattedFiles = await listGitDiff(git);
 
     if (formattedFiles.length) {
+        log.faint(`The following files were formatted:\n    ${formattedFiles.join('\n    ')}`);
+        log.faint('Committing and pushing format...');
         await git.add(formattedFiles);
         await git.commit('apply formatting', formattedFiles);
 
         await git.push();
+    } else {
+        log.faint('No files were formatted.');
     }
 }

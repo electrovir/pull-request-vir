@@ -1,4 +1,5 @@
 import {getInput} from '@actions/core';
+import {log} from '@augment-vir/node-js';
 import {transformFile} from '@swc/core';
 import {existsSync} from 'fs';
 import {mkdir, writeFile} from 'fs/promises';
@@ -12,10 +13,12 @@ import {
 
 export async function loadConfig(): Promise<PullRequestVirConfig> {
     const configFilePath = resolve(
-        getInput('config-file') || './configs/internal-action.config.ts',
+        getInput('config-file', {trimWhitespace: true}) || './configs/internal-action.config.ts',
     );
+    log.info(`Loading config at '${configFilePath}'...`);
 
     if (!existsSync(configFilePath)) {
+        log.faint('Config does not exist. Using default values.');
         return defaultPullRequestVirConfig;
     }
 
@@ -32,6 +35,14 @@ export async function loadConfig(): Promise<PullRequestVirConfig> {
     const config = (await import(join('pull-request-vir', 'config-output.js'))).default.default;
 
     assertValidShape(config, pullRequestVirConfigShape);
+
+    log.faint('config loaded:');
+    log.faint(
+        JSON.stringify(config, null, 4)
+            .split('\n')
+            .map((line) => `    ${line}`)
+            .join('\n'),
+    );
 
     return config;
 }

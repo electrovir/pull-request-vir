@@ -3,6 +3,9 @@ export declare const pullRequestVirConfigShape: import("object-shape-tester").Sh
     applyFormatting: import("object-shape-tester").ShapeOr<[undefined, {
         command: string;
     }]>;
+    triggerWorkflow: import("object-shape-tester").ShapeOr<[undefined, {
+        fileName: string;
+    }]>;
 }, false>;
 /** Config type expected by pull-request-vir. */
 export type PullRequestVirConfig = Partial<typeof pullRequestVirConfigShape.runTimeType>;
@@ -10,5 +13,8 @@ export type PullRequestVirConfig = Partial<typeof pullRequestVirConfigShape.runT
 export declare const defaultPullRequestVirConfig: Readonly<{
     applyFormatting: {
         command: string;
+    } | undefined;
+    triggerWorkflow: {
+        fileName: string;
     } | undefined;
 }>;

@@ -7,6 +7,12 @@ inputs:
     config-file:
         description: 'TypeScript config file'
         required: true
+    token:
+        description: 'Token used to access the repo with'
+        default: ${{ github.token }}
+    workflow-file-name:
+        description: 'Token used to access the repo with'
+        default: ${{ github.token }}
 outputs:
     status:
         description: 'The result of the checks'
