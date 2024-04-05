@@ -28,10 +28,19 @@ jobs:
                   mv "$originalTarName" "$newTarName"
                   echo ::set-output name=tarName::"$newTarName"
 
-            - uses: 'marvinpinto/action-automatic-releases@latest'
+            - name: 'latest release'
+              uses: 'marvinpinto/action-automatic-releases@latest'
               with:
                   repo_token: '${{ secrets.GITHUB_TOKEN }}'
                   prerelease: false
                   automatic_release_tag: 'latest'
+                  files: |
+                      ${{ steps.vars.outputs.tarName }}
+
+            - name: 'tagged release'
+              uses: 'marvinpinto/action-automatic-releases@latest'
+              with:
+                  repo_token: '${{ secrets.GITHUB_TOKEN }}'
+                  prerelease: false
                   files: |
                       ${{ steps.vars.outputs.tarName }}
