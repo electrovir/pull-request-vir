@@ -2,6 +2,8 @@
 
 GitHub Action for pull requests.
 
+type docs: https://electrovir.github.io/pull-request-vir
+
 ## usage
 
 1.  install this package into whatever repo you're planning to use it
