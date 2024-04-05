@@ -58,9 +58,11 @@ type docs: https://electrovir.github.io/pull-request-vir
         merge-checks:
             runs-on: ubuntu-latest
             steps:
+                # you must checkout your repo so that pull-request-vir can read your config
+                - uses: actions/checkout@v4.1.1
                 - uses: electrovir/pull-request-vir@latest
-                with:
-                    config_file: relative/path/to/config.ts
+                  with:
+                      config_file: relative/path/to/config.ts
     ```
 
 4.  push to GitHub and (hopefully) watch the magic

@@ -21,8 +21,9 @@ const subActions: ReadonlyArray<(params: SubActionParams) => Promise<void>> = [
     requireReviewers,
 ];
 
-async function runAction(repoDir: string | undefined) {
+async function runAction() {
     try {
+        const repoDir = process.env.GITHUB_WORKSPACE;
         if (!repoDir || !existsSync(repoDir)) {
             throw new Error(`Invalid repo dir: ${repoDir}`);
         }
@@ -85,4 +86,4 @@ async function runAction(repoDir: string | undefined) {
     }
 }
 
-runAction(process.argv[0]);
+runAction();
