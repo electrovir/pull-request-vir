@@ -11,7 +11,9 @@ export async function blockNoMerge({config, octokit, pullRequest, repo}: SubActi
         return;
     }
 
-    const noMergeLabels = pullRequest.labels.filter((label) => includesNoMergePhrase(label.name));
+    const noMergeLabels = pullRequest.labels
+        .map((label) => label.name)
+        .filter((label) => includesNoMergePhrase(label));
 
     const hasNoMergeTitle = includesNoMergePhrase(pullRequest.title);
 
