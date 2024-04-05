@@ -9,7 +9,7 @@ import {
 } from '@augment-vir/common';
 import {log} from '@augment-vir/node-js';
 import {existsSync} from 'node:fs';
-import {resolve} from 'node:path';
+import {join} from 'node:path';
 import {assertValidShape} from 'object-shape-tester';
 import {isRunTimeType} from 'run-time-assertions';
 import {PullRequestVirConfig} from '../config/define-config';
@@ -20,8 +20,9 @@ import {
 import {SilentError} from '../silent.error';
 import {logJson} from '../util/log-json';
 
-export async function loadConfig(): Promise<FullPullRequestVirConfig> {
-    const configPath = resolve(
+export async function loadConfig(repoDir: string): Promise<FullPullRequestVirConfig> {
+    const configPath = join(
+        repoDir,
         getInput('config_file', {trimWhitespace: true}) || './configs/pull-request-vir.config.ts',
     );
 

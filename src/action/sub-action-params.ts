@@ -6,4 +6,5 @@ export type SubActionParams = Readonly<{
     octokit: Readonly<Octokit>;
     pullRequest: Readonly<GithubPullRequest>;
     repo: Readonly<GithubRepo>;
+    repoDir: string;
 }>;

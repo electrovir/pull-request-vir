@@ -28,7 +28,7 @@ async function runAction(repoDir: string | undefined) {
         }
         log.faint(`repo dir: ${repoDir}`);
 
-        const config = await loadConfig();
+        const config = await loadConfig(repoDir);
 
         const token = getInput('token', {trimWhitespace: true});
 
@@ -68,6 +68,7 @@ async function runAction(repoDir: string | undefined) {
             octokit,
             pullRequest,
             repo: githubContext.repo,
+            repoDir,
         };
 
         await awaitedForEach(subActions, (subAction) => subAction(subActionParams));
