@@ -39,6 +39,8 @@ async function runAction() {
 
         const branchName = getInput('branch', {trimWhitespace: true});
 
+        log.faint(`branch name: ${branchName}`);
+
         if (!branchName) {
             throw new Error('Missing branch GitHub Action input.');
         }

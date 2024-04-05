@@ -1,4 +1,4 @@
-import {PullRequestVirConfig, ReviewRule, definePullRequestVirConfig} from './define-config';
+import {Config, PullRequestVirConfig, ReviewRule} from './define-config';
 
 describe('PullRequestVirConfig', () => {
     it('allows an empty object', () => {
@@ -47,9 +47,9 @@ describe('ReviewRule', () => {
     });
 });
 
-describe(definePullRequestVirConfig.name, () => {
-    it('defines an example config', () => {
-        definePullRequestVirConfig({
+describe('Config', () => {
+    it('accepts an example config', () => {
+        const config: Config = {
             assignToAuthor: true,
             blockNoMerge: true,
             reviewRules: [
@@ -67,6 +67,6 @@ describe(definePullRequestVirConfig.name, () => {
                     ],
                 },
             ],
-        });
+        };
     });
 });

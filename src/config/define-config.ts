@@ -10,30 +10,6 @@ export type PullRequestVirConfig = PartialAndUndefined<
     Overwrite<FullPullRequestVirConfig, {reviewRules: ReviewRule[]}>
 >;
 /** All possible `definePullRequestVirConfig` inputs. */
-export type ConfigInput =
+export type Config =
     | MaybePromise<PullRequestVirConfig>
     | (() => MaybePromise<PullRequestVirConfig>);
-
-/**
- * Define a config for pull-request-vir.
- *
- * @example
- *     export default definePullRequestVirConfig({
- *         reviewRules: [
- *             {
- *                 autoAdd: true,
- *                 users: ['electrovir'],
- *             },
- *         ],
- *     });
- *
- * @param config Can either be a config object, a promise of a config object, or a callback that
- *   returns either of those.
- */
-export function definePullRequestVirConfig(config: ConfigInput = {}) {
-    if (typeof config === 'function') {
-        return config();
-    } else {
-        return config;
-    }
-}

@@ -15,9 +15,9 @@ type docs: https://electrovir.github.io/pull-request-vir
     3. export its output as the default output:
 
         ```typescript
-        import {definePullRequestVirConfig} from 'pull-request-vir';
+        import type {Config} from 'pull-request-vir';
 
-        export default definePullRequestVirConfig({
+        export const config: Config = {
             // see type definition for full config options
             assignToAuthor: true,
             blockNoMerge: true,
@@ -33,7 +33,7 @@ type docs: https://electrovir.github.io/pull-request-vir
                     requiredIf: [/^src\/backend\//],
                 },
             ],
-        });
+        };
         ```
 
 3.  create a GitHub Actions workflow that uses `pull-request-vir`:

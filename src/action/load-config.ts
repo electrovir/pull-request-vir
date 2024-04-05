@@ -12,7 +12,7 @@ import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {assertValidShape} from 'object-shape-tester';
 import {isRunTimeType} from 'run-time-assertions';
-import {PullRequestVirConfig} from '../config/define-config';
+import {Config, PullRequestVirConfig} from '../config/define-config';
 import {
     FullPullRequestVirConfig,
     pullRequestVirConfigShape,
@@ -34,13 +34,16 @@ export async function loadConfig(repoDir: string): Promise<FullPullRequestVirCon
         log.warning('Config does not exist. Using default values.');
     }
 
-    const rawConfig: PullRequestVirConfig = shouldLoadConfig
-        ? await wrapInTry(() => import(configPath))
+    const rawConfigInput: Config = shouldLoadConfig
+        ? await wrapInTry(async () => (await import(configPath)).config)
         : {};
 
-    if (rawConfig instanceof Error) {
-        throw ensureErrorAndPrependMessage(rawConfig, `Failed to import config`);
+    if (rawConfigInput instanceof Error) {
+        throw ensureErrorAndPrependMessage(rawConfigInput, `Failed to import config`);
     }
+
+    const rawConfig =
+        typeof rawConfigInput === 'function' ? await rawConfigInput() : await rawConfigInput;
 
     const sanitizedConfig = sanitizeConfig(rawConfig);
 
