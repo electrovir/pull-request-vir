@@ -9,6 +9,7 @@ module.exports = {
         ...baseConfig.words,
         'openapi',
         'codeowners',
+        'hérault',
         'nomerge',
         'notmerge',
         'blockmerge',

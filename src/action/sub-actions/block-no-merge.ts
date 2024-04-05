@@ -1,8 +1,8 @@
 import {joinWithFinalConjunction} from '@augment-vir/common';
 import {log} from '@augment-vir/node-js';
-import parseGitPatch from 'parse-git-patch';
 import {SilentError} from '../../silent.error';
 import {logJson} from '../../util/log-json';
+import {parseGitPatch} from '../../util/parse-git-patch';
 import {SubActionParams} from '../sub-action-params';
 
 export async function blockNoMerge({config, octokit, pullRequest, repo}: SubActionParams) {
