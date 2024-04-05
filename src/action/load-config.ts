@@ -1,48 +1,80 @@
 import {getInput} from '@actions/core';
-import {log} from '@augment-vir/node-js';
-import {transformFile} from '@swc/core';
-import {existsSync} from 'fs';
-import {mkdir, writeFile} from 'fs/promises';
-import {assertValidShape} from 'object-shape-tester';
-import {dirname, join, resolve} from 'path';
 import {
-    PullRequestVirConfig,
-    defaultPullRequestVirConfig,
+    RequiredAndNotNull,
+    ensureErrorAndPrependMessage,
+    extractErrorMessage,
+    filterObject,
+    isTruthy,
+    wrapInTry,
+} from '@augment-vir/common';
+import {log} from '@augment-vir/node-js';
+import {existsSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {assertValidShape} from 'object-shape-tester';
+import {isRunTimeType} from 'run-time-assertions';
+import {PullRequestVirConfig} from '../config/define-config';
+import {
+    FullPullRequestVirConfig,
     pullRequestVirConfigShape,
 } from '../config/pull-request-vir-config';
+import {SilentError} from '../silent.error';
+import {logJson} from '../util/log-json';
 
-export async function loadConfig(): Promise<PullRequestVirConfig> {
-    const configFilePath = resolve(
-        getInput('config-file', {trimWhitespace: true}) || './configs/internal-action.config.ts',
+export async function loadConfig(): Promise<FullPullRequestVirConfig> {
+    const configPath = resolve(
+        getInput('config_file', {trimWhitespace: true}) || './configs/pull-request-vir.config.ts',
     );
-    log.info(`Loading config at '${configFilePath}'...`);
 
-    if (!existsSync(configFilePath)) {
-        log.faint('Config does not exist. Using default values.');
-        return defaultPullRequestVirConfig;
+    log.faint(`Loading config at '${configPath}'`);
+
+    const shouldLoadConfig = existsSync(configPath);
+
+    if (shouldLoadConfig) {
+        log.warning('Config does not exist. Using default values.');
     }
 
-    const outputPath = join(process.cwd(), 'node_modules', 'pull-request-vir', 'config-output.js');
-    await mkdir(dirname(outputPath), {recursive: true});
+    const rawConfig: PullRequestVirConfig = shouldLoadConfig
+        ? await wrapInTry(() => import(configPath))
+        : {};
 
-    const output = await transformFile(configFilePath, {
-        isModule: true,
-        module: {
-            type: 'commonjs',
-        },
-    });
-    await writeFile(outputPath, output.code);
-    const config = (await import(join('pull-request-vir', 'config-output.js'))).default.default;
+    if (rawConfig instanceof Error) {
+        throw ensureErrorAndPrependMessage(rawConfig, `Failed to import config`);
+    }
 
-    assertValidShape(config, pullRequestVirConfigShape);
+    const sanitizedConfig = sanitizeConfig(rawConfig);
 
+    log.faint('');
     log.faint('config loaded:');
-    log.faint(
-        JSON.stringify(config, null, 4)
-            .split('\n')
-            .map((line) => `    ${line}`)
-            .join('\n'),
-    );
+    logJson(sanitizedConfig, 'faint');
 
-    return config;
+    try {
+        assertValidShape(sanitizedConfig, pullRequestVirConfigShape);
+    } catch (error) {
+        log.error('Invalid config:');
+        log.error(extractErrorMessage(error));
+        throw new SilentError();
+    }
+
+    return sanitizedConfig;
+}
+
+function sanitizeConfig(rawConfig: PullRequestVirConfig): FullPullRequestVirConfig {
+    const sanitizedConfig = filterObject(rawConfig, (key, value) => {
+        return value != undefined;
+    }) as Partial<RequiredAndNotNull<PullRequestVirConfig>>;
+
+    return {
+        ...pullRequestVirConfigShape.defaultValue,
+        ...sanitizedConfig,
+        reviewRules: (sanitizedConfig.reviewRules || []).map((reviewRule) => {
+            return {
+                ...reviewRule,
+                users: Array.from(new Set(reviewRule.users.filter(isTruthy))),
+                requiredIf: (reviewRule.requiredIf || []).filter(
+                    (entry) => entry && (isRunTimeType(entry, 'string') || entry instanceof RegExp),
+                ),
+                required: reviewRule.required ?? 'all',
+            };
+        }),
+    };
 }

@@ -1,7 +1,6 @@
 {
     "compilerOptions": {
-        "module": "NodeNext",
-        "moduleResolution": "NodeNext",
+        "module": "ES2022",
         "outDir": "./dist",
         "rootDir": "./src"
     },
@@ -14,11 +13,5 @@
         "./test-files",
         "./ts.out"
     ],
-    "extends": "virmator/base-configs/base-tsconfig.json",
-    "ts-node": {
-        "compilerOptions": {
-            "module": "NodeNext",
-            "moduleResolution": "NodeNext"
-        }
-    }
+    "extends": "virmator/base-configs/tsconfig.base.json"
 }

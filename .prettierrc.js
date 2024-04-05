@@ -1,4 +1,4 @@
-const {basePrettierConfig} = require('virmator/base-configs/base-prettierrc.js');
+import {basePrettierConfig} from 'virmator/base-configs/base-prettierrc.js';
 
 /**
  * @typedef {import('prettier-plugin-multiline-arrays').MultilineArrayOptions} MultilineOptions
@@ -6,8 +6,6 @@ const {basePrettierConfig} = require('virmator/base-configs/base-prettierrc.js')
  * @typedef {import('prettier').Options} PrettierOptions
  * @type {PrettierOptions & MultilineOptions}
  */
-const prettierConfig = {
+export default {
     ...basePrettierConfig,
 };
-
-module.exports = prettierConfig;

@@ -4,10 +4,13 @@ module.exports = {
     ...baseConfig,
     ignorePaths: [
         ...baseConfig.ignorePaths,
-        '**/dist/',
     ],
     words: [
         ...baseConfig.words,
         'openapi',
+        'codeowners',
+        'nomerge',
+        'notmerge',
+        'blockmerge',
     ],
 };

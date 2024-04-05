@@ -11,5 +11,9 @@ export const typeDocConfig: Partial<TypeDocOptions> = {
     entryPoints: [
         indexTsFile,
     ],
-    intentionallyNotExported: [],
+    excludeInternal: true,
+    intentionallyNotExported: [
+        'FullPullRequestVirConfig',
+        'FullReviewRule',
+    ],
 };

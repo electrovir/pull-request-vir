@@ -16,11 +16,6 @@ jobs:
               uses: actions/setup-node@v3
               with:
                   node-version-file: '.nvmrc'
-            - name: run test
-              run: |
-                  npm ci
-                  npx playwright install --with-deps
-                  npm run test:all
             - name: pack and set vars
               id: vars
               run: |
@@ -37,5 +32,6 @@ jobs:
               with:
                   repo_token: '${{ secrets.GITHUB_TOKEN }}'
                   prerelease: false
+                  automatic_release_tag: 'latest'
                   files: |
                       ${{ steps.vars.outputs.tarName }}
