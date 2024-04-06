@@ -125,6 +125,7 @@ async function checkReviewRule(
     repo: Readonly<GithubRepo>,
     changedFiles: ReadonlyArray<string>,
 ): Promise<undefined | {failureReason: string}> {
+    const author = pullRequest.user?.login || '';
     const matchesRequiredIf = rule.requiredIf.some((requiredIf) => {
         return changedFiles.some((filePath) => {
             if (isRunTimeType(requiredIf, 'string')) {
@@ -142,6 +143,10 @@ async function checkReviewRule(
 
     const reviewers = rule.users.reduce(
         (accum, user) => {
+            if (user === author) {
+                return accum;
+            }
+
             if (user in reviews) {
                 accum.allRequestedReviewers.push(user);
 
@@ -170,15 +175,12 @@ async function checkReviewRule(
 
     const requiredCount: number = rule.required === 'all' ? rule.users.length : rule.required;
 
-    const author = pullRequest.user?.login || '';
-    const reviewersToAdd = reviewers.notRequested.filter((reviewer) => reviewer !== author);
-
-    if (rule.autoAdd && reviewersToAdd.length) {
-        log.faint(`Adding reviewers: ${joinWithFinalConjunction(reviewersToAdd, 'and')}`);
+    if (rule.autoAdd && reviewers.notRequested.length) {
+        log.faint(`Adding reviewers: ${joinWithFinalConjunction(reviewers.notRequested, 'and')}`);
         const response = await octokit.rest.pulls.requestReviewers({
             ...repo,
             pull_number: pullRequest.number,
-            reviewers: reviewersToAdd,
+            reviewers: reviewers.notRequested,
         });
 
         console.log('auto add response', response);
