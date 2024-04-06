@@ -1,4 +1,10 @@
-import {isTruthy, joinWithFinalConjunction, typedObjectFromEntries} from '@augment-vir/common';
+import {
+    awaitedBlockingMap,
+    isTruthy,
+    joinWithFinalConjunction,
+    typedObjectFromEntries,
+    wait,
+} from '@augment-vir/common';
 import {log} from '@augment-vir/node-js';
 import {isRunTimeType} from 'run-time-assertions';
 import {FullReviewRule} from '../../config/pull-request-vir-config';
@@ -48,10 +54,12 @@ export async function requireReviewers({config, octokit, pullRequest, repo}: Sub
 
     log.faint('changed files:');
     logJson(changedFiles, 'faint');
+    /** Wait for logging to finish? Cause GitHub Actions jumbles them all up. */
+    await wait(100);
 
-    const failedRules = config.reviewRules
-        .map((rule, index) => {
-            const failure = checkReviewRule(
+    const failedRules = (
+        await awaitedBlockingMap(config.reviewRules, async (rule, index) => {
+            const failure = await checkReviewRule(
                 reviews,
                 rule,
                 octokit,
@@ -69,7 +77,10 @@ export async function requireReviewers({config, octokit, pullRequest, repo}: Sub
                 rule,
             };
         })
-        .filter(isTruthy);
+    ).filter(isTruthy);
+
+    /** Wait for logging to finish? Cause GitHub Actions jumbles them all up. */
+    await wait(100);
 
     if (failedRules.length) {
         log.error('Failed review rules.');
@@ -110,7 +121,7 @@ async function checkReviewRule(
     reviews: Readonly<PullRequestReviews>,
     rule: Readonly<FullReviewRule>,
     octokit: Octokit,
-    pullRequest: Readonly<Pick<GithubPullRequest, 'number'>>,
+    pullRequest: Readonly<Pick<GithubPullRequest, 'number' | 'user'>>,
     repo: Readonly<GithubRepo>,
     changedFiles: ReadonlyArray<string>,
 ): Promise<undefined | {failureReason: string}> {
@@ -159,12 +170,15 @@ async function checkReviewRule(
 
     const requiredCount: number = rule.required === 'all' ? rule.users.length : rule.required;
 
-    if (rule.autoAdd && reviewers.notRequested.length) {
-        log.faint(`Adding reviewers: ${joinWithFinalConjunction(reviewers.notRequested, 'and')}`);
+    const author = pullRequest.user?.login || '';
+    const reviewersToAdd = reviewers.notRequested.filter((reviewer) => reviewer !== author);
+
+    if (rule.autoAdd && reviewersToAdd.length) {
+        log.faint(`Adding reviewers: ${joinWithFinalConjunction(reviewersToAdd, 'and')}`);
         const response = await octokit.rest.pulls.requestReviewers({
             ...repo,
             pull_number: pullRequest.number,
-            reviewers: reviewers.notRequested,
+            reviewers: reviewersToAdd,
         });
 
         console.log('auto add response', response);

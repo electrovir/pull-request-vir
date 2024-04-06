@@ -30,7 +30,7 @@ export async function loadConfig(repoDir: string): Promise<FullPullRequestVirCon
 
     const shouldLoadConfig = existsSync(configPath);
 
-    if (shouldLoadConfig) {
+    if (!shouldLoadConfig) {
         log.warning('Config does not exist. Using default values.');
     }
 
