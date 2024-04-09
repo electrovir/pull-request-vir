@@ -1,6 +1,6 @@
 import {getInput} from '@actions/core';
 import {getOctokit, context as githubContext} from '@actions/github';
-import {awaitedForEach, extractErrorMessage} from '@augment-vir/common';
+import {awaitedForEach, extractErrorMessage, wait} from '@augment-vir/common';
 import {log} from '@augment-vir/node-js';
 import {existsSync} from 'node:fs';
 import {GithubPullRequest} from '../data/github';
@@ -22,6 +22,12 @@ const subActions: ReadonlyArray<(params: SubActionParams) => Promise<void>> = [
 ];
 
 async function runAction() {
+    /**
+     * Wait because GitHub is slow to update, which causes race conditions with this action being
+     * triggered and it reading the data.
+     */
+    await wait(10_000);
+
     try {
         const repoDir = process.env.GITHUB_WORKSPACE;
         if (!repoDir || !existsSync(repoDir)) {

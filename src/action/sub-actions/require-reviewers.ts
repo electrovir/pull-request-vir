@@ -42,6 +42,8 @@ export async function requireReviewers({config, octokit, pullRequest, repo}: Sub
         ...submittedReviews,
     ]);
 
+    console.log({submittedReviews, requestedReviewers});
+
     log.faint('current approvals');
     logJson(reviews, 'faint');
 
