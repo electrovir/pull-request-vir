@@ -1,6 +1,6 @@
 {
     "name": "pull-request-vir",
-    "version": "0.0.18",
+    "version": "0.0.19",
     "description": "GitHub Action for pull requests",
     "keywords": [
         "github",

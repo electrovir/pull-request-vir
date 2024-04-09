@@ -37,12 +37,7 @@ export async function requireReviewers({config, octokit, pullRequest, repo}: Sub
 
     const requestedReviewers = pullRequest.requested_reviewers || [];
 
-    const reviews = parseReviews([
-        ...requestedReviewers,
-        ...submittedReviews,
-    ]);
-
-    console.log({submittedReviews, requestedReviewers});
+    const reviews = parseReviews(requestedReviewers, submittedReviews);
 
     log.faint('current approvals');
     logJson(reviews, 'faint');
@@ -94,29 +89,29 @@ export async function requireReviewers({config, octokit, pullRequest, repo}: Sub
 }
 
 function parseReviews(
-    reviews: ReadonlyArray<Readonly<GithubReview | GithubUser>>,
+    requestedReviewers: ReadonlyArray<Readonly<GithubUser>>,
+    submittedReviews: ReadonlyArray<Readonly<GithubReview>>,
 ): PullRequestReviews {
-    return typedObjectFromEntries(
-        reviews
+    const approvals = typedObjectFromEntries(
+        submittedReviews
             .map((entry): [string, boolean] | undefined => {
-                if ('user' in entry) {
-                    if (!entry.user) {
-                        return undefined;
-                    }
-
-                    return [
-                        entry.user.login,
-                        entry.state === ReviewStatus.Approved,
-                    ];
-                } else {
-                    return [
-                        entry.login,
-                        false,
-                    ];
+                if (!entry.user) {
+                    return undefined;
                 }
+
+                return [
+                    entry.user.login,
+                    entry.state === ReviewStatus.Approved,
+                ];
             })
             .filter(isTruthy),
     );
+
+    requestedReviewers.forEach((requestedReviewer) => {
+        approvals[requestedReviewer.login] = false;
+    });
+
+    return approvals;
 }
 
 async function checkReviewRule(
