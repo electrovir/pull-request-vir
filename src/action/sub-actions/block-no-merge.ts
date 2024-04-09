@@ -31,7 +31,7 @@ export async function blockNoMerge({config, octokit, pullRequest, repo}: SubActi
 
     if (!patch) {
         log.error('Failed to parse patch:');
-        console.info(patchContents);
+        log.error(patchContents);
 
         throw new SilentError();
     }

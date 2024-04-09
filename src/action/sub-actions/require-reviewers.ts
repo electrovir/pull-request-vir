@@ -179,8 +179,6 @@ async function checkReviewRule(
             pull_number: pullRequest.number,
             reviewers: reviewers.notRequested,
         });
-
-        console.log('auto add response', response);
     }
 
     /** Takes into account manually added reviewers when `autoAdd` is turned off. */
