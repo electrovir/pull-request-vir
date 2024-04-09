@@ -37,7 +37,7 @@ async function runAction() {
             throw new Error('Missing token GitHub Action input.');
         }
 
-        const branchName = getInput('branch', {trimWhitespace: true});
+        const branchName = githubContext.payload.pull_request?.head?.ref;
 
         log.faint(`branch name: ${branchName}`);
 
