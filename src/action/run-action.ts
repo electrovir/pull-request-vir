@@ -1,10 +1,10 @@
-import {getInput} from '@actions/core';
-import {getOctokit, context as githubContext} from '@actions/github';
+import {context as githubContext} from '@actions/github';
 import {awaitedForEach, extractErrorMessage, wait} from '@augment-vir/common';
 import {log} from '@augment-vir/node-js';
-import {existsSync} from 'node:fs';
 import {GithubPullRequest} from '../data/github';
 import {SilentError} from '../silent.error';
+import {clearPreviousRuns} from '../util/clear-previous-runs';
+import {extractEnvVars} from '../util/extract-env-vars';
 import {loadConfig} from './load-config';
 import {SubActionParams} from './sub-action-params';
 import {autoAssignAuthor} from './sub-actions/auto-assign-author';
@@ -29,29 +29,11 @@ async function runAction() {
     await wait(10_000);
 
     try {
-        const repoDir = process.env.GITHUB_WORKSPACE;
-        if (!repoDir || !existsSync(repoDir)) {
-            throw new Error(`Invalid repo dir: ${repoDir}`);
-        }
-        log.faint(`repo dir: ${repoDir}`);
+        const {branchName, currentRunId, octokit, repo, repoDir, workflowName} = extractEnvVars();
+
+        await clearPreviousRuns({branchName, currentRunId, octokit, repo, workflowName});
 
         const config = await loadConfig(repoDir);
-
-        const token = getInput('token', {trimWhitespace: true});
-
-        if (!token) {
-            throw new Error('Missing token GitHub Action input.');
-        }
-
-        const branchName = githubContext.payload.pull_request?.head?.ref;
-
-        log.faint(`branch name: ${branchName}`);
-
-        if (!branchName) {
-            throw new Error('Missing branch GitHub Action input.');
-        }
-
-        const octokit = getOctokit(token);
 
         const pullRequest: GithubPullRequest | undefined = (
             await octokit.rest.pulls.list({
@@ -76,7 +58,7 @@ async function runAction() {
             config,
             octokit,
             pullRequest,
-            repo: githubContext.repo,
+            repo,
             repoDir,
         };
 
