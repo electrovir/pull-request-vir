@@ -35,6 +35,8 @@ export async function requireReviewers({config, octokit, pullRequest, repo}: Sub
         })
     ).data;
 
+    console.log(submittedReviews);
+
     const requestedReviewers = pullRequest.requested_reviewers || [];
 
     const reviews = parseReviews(requestedReviewers, submittedReviews);
