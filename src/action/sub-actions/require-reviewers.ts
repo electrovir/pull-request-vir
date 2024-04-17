@@ -2,10 +2,11 @@ import {
     awaitedBlockingMap,
     isTruthy,
     joinWithFinalConjunction,
-    typedObjectFromEntries,
+    mapObjectValues,
     wait,
 } from '@augment-vir/common';
 import {log} from '@augment-vir/node-js';
+import {createUtcFullDate, isDateAfter} from 'date-vir';
 import {isRunTimeType} from 'run-time-assertions';
 import {FullReviewRule} from '../../config/pull-request-vir-config';
 import {
@@ -33,9 +34,7 @@ export async function requireReviewers({config, octokit, pullRequest, repo}: Sub
             ...repo,
             pull_number: pullRequest.number,
         })
-    ).data;
-
-    console.log(submittedReviews);
+    ).data as GithubReview[];
 
     const requestedReviewers = pullRequest.requested_reviewers || [];
 
@@ -90,24 +89,52 @@ export async function requireReviewers({config, octokit, pullRequest, repo}: Sub
     log.success('All review rules have passed.');
 }
 
-function parseReviews(
+export function parseReviews(
     requestedReviewers: ReadonlyArray<Readonly<GithubUser>>,
     submittedReviews: ReadonlyArray<Readonly<GithubReview>>,
 ): PullRequestReviews {
-    const approvals = typedObjectFromEntries(
-        submittedReviews
-            .map((entry): [string, boolean] | undefined => {
-                if (!entry.user) {
-                    return undefined;
-                }
+    const mostRecentReviewPerUser = submittedReviews.reduce(
+        (accum, currentReview) => {
+            const currentReviewDate = currentReview.submitted_at
+                ? createUtcFullDate(currentReview.submitted_at)
+                : undefined;
+            const username = currentReview.user?.login;
 
-                return [
-                    entry.user.login,
-                    entry.state === ReviewStatus.Approved,
-                ];
-            })
-            .filter(isTruthy),
+            if (currentReview.state === ReviewStatus.Commented) {
+                /**
+                 * Completely ignore comment reviews as they mean nothing and include all comments,
+                 * not just comment reviews.
+                 */
+                return accum;
+            } else if (!username) {
+                /** We can't reason about a review with no user name. */
+                return accum;
+            } else if (!currentReviewDate) {
+                /** We can't compare reviews if the current one has not submission time. */
+                return accum;
+            }
+
+            const latestReview = accum[username];
+            const latestReviewDate = latestReview?.submitted_at
+                ? createUtcFullDate(latestReview.submitted_at)
+                : undefined;
+
+            if (
+                !latestReviewDate ||
+                (currentReviewDate &&
+                    isDateAfter({fullDate: currentReviewDate, relativeTo: latestReviewDate}))
+            ) {
+                accum[username] = currentReview;
+            }
+
+            return accum;
+        },
+        {} as Record<string, GithubReview>,
     );
+
+    const approvals = mapObjectValues(mostRecentReviewPerUser, (username, review) => {
+        return review.state === ReviewStatus.Approved;
+    });
 
     requestedReviewers.forEach((requestedReviewer) => {
         approvals[requestedReviewer.login] = false;

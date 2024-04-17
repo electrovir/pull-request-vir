@@ -1,5 +1,5 @@
 import type {getOctokit} from '@actions/github';
-import type {ArrayElement} from '@augment-vir/common';
+import type {ArrayElement, Overwrite} from '@augment-vir/common';
 import {components} from '@octokit/openapi-types';
 
 export type GithubActionsEventTriggerName = ArrayElement<
@@ -15,12 +15,18 @@ export type GithubActionsEventTriggerName = ArrayElement<
 export type GithubPullRequest = components['schemas']['pull-request-simple'];
 
 export type GithubUser = components['schemas']['simple-user'];
-export type GithubReview = components['schemas']['pull-request-review'];
+export type GithubReview = Overwrite<
+    components['schemas']['pull-request-review'],
+    {
+        state: ReviewStatus;
+    }
+>;
 
 export enum ReviewStatus {
     ChangesRequested = 'CHANGES_REQUESTED',
     Approved = 'APPROVED',
     Commented = 'COMMENTED',
+    Dismissed = 'DISMISSED',
 }
 
 export type Octokit = ReturnType<typeof getOctokit>;

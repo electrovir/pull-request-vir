@@ -1,6 +1,6 @@
 {
     "name": "pull-request-vir",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "GitHub Action for pull requests",
     "keywords": [
         "github",
@@ -47,6 +47,7 @@
         "@octokit/core": "^6.1.2",
         "@octokit/openapi-types": "^22.1.0",
         "@octokit/rest": "^20.1.0",
+        "date-vir": "^5.1.4",
         "object-shape-tester": "^2.3.2",
         "run-time-assertions": "^1.2.0",
         "simple-git": "^3.24.0",
@@ -80,6 +81,6 @@
         "prettier-plugin-toml": "^2.0.1",
         "ts-node": "^10.9.2",
         "typedoc": "^0.25.13",
-        "typescript": "^5.4.5"
+        "typescript": "^5.3.3"
     }
 }
