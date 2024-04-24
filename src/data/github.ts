@@ -1,6 +1,7 @@
 import type {getOctokit} from '@actions/github';
-import type {ArrayElement, Overwrite} from '@augment-vir/common';
+import type {ArrayElement} from '@augment-vir/common';
 import {components} from '@octokit/openapi-types';
+import {defineShape, enumShape, or} from 'object-shape-tester';
 
 export type GithubActionsEventTriggerName = ArrayElement<
     NonNullable<
@@ -15,12 +16,6 @@ export type GithubActionsEventTriggerName = ArrayElement<
 export type GithubPullRequest = components['schemas']['pull-request-simple'];
 
 export type GithubUser = components['schemas']['simple-user'];
-export type GithubReview = Overwrite<
-    components['schemas']['pull-request-review'],
-    {
-        state: ReviewStatus;
-    }
->;
 
 export enum ReviewStatus {
     ChangesRequested = 'CHANGES_REQUESTED',
@@ -35,3 +30,31 @@ export type GithubRepo = {
     owner: string;
     repo: string;
 };
+
+export enum GithubGraphqlReviewState {
+    Approved = 'APPROVED',
+    Pending = 'PENDING',
+    Commented = 'COMMENTED',
+    ChangesRequested = 'CHANGES_REQUESTED',
+    Dismissed = 'DISMISSED',
+}
+
+const githubUserSearchResponseShape = defineShape(
+    {
+        login: '',
+        avatarUrl: or(undefined, ''),
+        teamAvatarUrl: or(undefined, ''),
+        url: '',
+    },
+    true,
+);
+
+export const githubReviewShape = defineShape(
+    {
+        state: enumShape(GithubGraphqlReviewState),
+        author: githubUserSearchResponseShape,
+        submittedAt: '',
+    },
+    true,
+);
+export type GithubReview = typeof githubReviewShape.runTimeType;

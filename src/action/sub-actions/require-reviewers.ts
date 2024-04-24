@@ -1,21 +1,20 @@
 import {
+    PickDeep,
     awaitedBlockingMap,
     isTruthy,
     joinWithFinalConjunction,
-    mapObjectValues,
     wait,
 } from '@augment-vir/common';
 import {log} from '@augment-vir/node-js';
-import {createUtcFullDate, isDateAfter} from 'date-vir';
 import {isRunTimeType} from 'run-time-assertions';
 import {FullReviewRule} from '../../config/pull-request-vir-config';
 import {
+    GithubGraphqlReviewState,
     GithubPullRequest,
     GithubRepo,
     GithubReview,
     GithubUser,
     Octokit,
-    ReviewStatus,
 } from '../../data/github';
 import {SilentError} from '../../silent.error';
 import {logJson} from '../../util/log-json';
@@ -23,18 +22,51 @@ import {SubActionParams} from '../sub-action-params';
 
 type PullRequestReviews = {[username in string]: boolean};
 
+async function fetchSubmittedReviews({
+    octokit,
+    repo,
+    pullRequest,
+}: PickDeep<
+    SubActionParams,
+    ['octokit' | 'repo' | 'pullRequest', 'graphql' | 'owner' | 'repo' | 'number']
+>): Promise<GithubReview[]> {
+    const results: any = await octokit.graphql(
+        /* GraphQL */ `
+            query ($owner: String!, $repo: String!, $pullNumber: Int!) {
+                repository(owner: $owner, name: $repo) {
+                    pullRequest(number: $pullNumber) {
+                        latestOpinionatedReviews(first: 10) {
+                            nodes {
+                                author {
+                                    login
+                                    avatarUrl
+                                    url
+                                }
+                                submittedAt
+                                state
+                            }
+                        }
+                    }
+                }
+            }
+        `,
+        {
+            owner: repo.owner,
+            repo: repo.repo,
+            pullNumber: pullRequest.number,
+        },
+    );
+
+    return results.repository.pullRequest.latestOpinionatedReviews.nodes;
+}
+
 export async function requireReviewers({config, octokit, pullRequest, repo}: SubActionParams) {
     if (!config.reviewRules.length) {
         log.success('No review rules, skipping review checks.');
         return;
     }
 
-    const submittedReviews = (
-        await octokit.rest.pulls.listReviews({
-            ...repo,
-            pull_number: pullRequest.number,
-        })
-    ).data as GithubReview[];
+    const submittedReviews = await fetchSubmittedReviews({octokit, pullRequest, repo});
 
     const requestedReviewers = pullRequest.requested_reviewers || [];
 
@@ -93,48 +125,10 @@ export function parseReviews(
     requestedReviewers: ReadonlyArray<Readonly<GithubUser>>,
     submittedReviews: ReadonlyArray<Readonly<GithubReview>>,
 ): PullRequestReviews {
-    const mostRecentReviewPerUser = submittedReviews.reduce(
-        (accum, currentReview) => {
-            const currentReviewDate = currentReview.submitted_at
-                ? createUtcFullDate(currentReview.submitted_at)
-                : undefined;
-            const username = currentReview.user?.login;
-
-            if (currentReview.state === ReviewStatus.Commented) {
-                /**
-                 * Completely ignore comment reviews as they mean nothing and include all comments,
-                 * not just comment reviews.
-                 */
-                return accum;
-            } else if (!username) {
-                /** We can't reason about a review with no user name. */
-                return accum;
-            } else if (!currentReviewDate) {
-                /** We can't compare reviews if the current one has not submission time. */
-                return accum;
-            }
-
-            const latestReview = accum[username];
-            const latestReviewDate = latestReview?.submitted_at
-                ? createUtcFullDate(latestReview.submitted_at)
-                : undefined;
-
-            if (
-                !latestReviewDate ||
-                (currentReviewDate &&
-                    isDateAfter({fullDate: currentReviewDate, relativeTo: latestReviewDate}))
-            ) {
-                accum[username] = currentReview;
-            }
-
-            return accum;
-        },
-        {} as Record<string, GithubReview>,
-    );
-
-    const approvals = mapObjectValues(mostRecentReviewPerUser, (username, review) => {
-        return review.state === ReviewStatus.Approved;
-    });
+    const approvals = submittedReviews.reduce((accum, review) => {
+        accum[review.author.login] = review.state === GithubGraphqlReviewState.Approved;
+        return accum;
+    }, {} as PullRequestReviews);
 
     requestedReviewers.forEach((requestedReviewer) => {
         approvals[requestedReviewer.login] = false;
