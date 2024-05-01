@@ -1,7 +1,14 @@
-import {context as githubContext} from '@actions/github';
-import {awaitedForEach, extractErrorMessage, wait} from '@augment-vir/common';
+import {
+    awaitedBlockingMap,
+    combineErrors,
+    ensureError,
+    extractErrorMessage,
+    isTruthy,
+    wait,
+} from '@augment-vir/common';
 import {log} from '@augment-vir/node-js';
 import {GithubPullRequest} from '../data/github';
+import {fetchGithubPullRequest} from '../services/fetch-github-pull-request';
 import {SilentError} from '../silent.error';
 import {clearPreviousRuns} from '../util/clear-previous-runs';
 import {extractEnvVars} from '../util/extract-env-vars';
@@ -10,6 +17,7 @@ import {SubActionParams} from './sub-action-params';
 import {autoAssignAuthor} from './sub-actions/auto-assign-author';
 import {blockNoMerge} from './sub-actions/block-no-merge';
 import {requireReviewers} from './sub-actions/require-reviewers';
+import {waitForParent} from './sub-actions/wait-for-parent-pull-request';
 
 /**
  * These are in order of least likely to fail to more likely to fail, so we can run as many of them
@@ -19,6 +27,7 @@ const subActions: ReadonlyArray<(params: SubActionParams) => Promise<void>> = [
     autoAssignAuthor,
     blockNoMerge,
     requireReviewers,
+    waitForParent,
 ];
 
 async function runAction() {
@@ -35,18 +44,10 @@ async function runAction() {
 
         const config = await loadConfig(repoDir);
 
-        const pullRequest: GithubPullRequest | undefined = (
-            await octokit.rest.pulls.list({
-                ...githubContext.repo,
-                head: [
-                    githubContext.repo.owner,
-                    branchName,
-                ].join(':'),
-                state: 'open',
-                sort: 'updated',
-                direction: 'desc',
-            })
-        ).data[0];
+        const pullRequest: GithubPullRequest | undefined = await fetchGithubPullRequest(
+            octokit,
+            branchName,
+        );
 
         if (pullRequest) {
             log.faint(`Using pull request #${pullRequest.number}: ${pullRequest.title}`);
@@ -62,7 +63,25 @@ async function runAction() {
             repoDir,
         };
 
-        await awaitedForEach(subActions, (subAction) => subAction(subActionParams));
+        const errors: Error[] = (
+            await awaitedBlockingMap(subActions, async (subAction) => {
+                try {
+                    await subAction(subActionParams);
+                    return undefined;
+                } catch (error) {
+                    return ensureError(error);
+                }
+            })
+        ).filter(isTruthy);
+
+        if (errors.length) {
+            const errorsForMessage = errors.filter((error) => !(error instanceof SilentError));
+            if (errorsForMessage.length) {
+                throw combineErrors(errorsForMessage);
+            } else {
+                throw new SilentError();
+            }
+        }
 
         log.faint('');
         log.success('pull-request-vir finished');

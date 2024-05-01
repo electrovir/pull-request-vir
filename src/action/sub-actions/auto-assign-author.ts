@@ -3,7 +3,7 @@ import {SubActionParams} from '../sub-action-params';
 
 export async function autoAssignAuthor({config, octokit, pullRequest, repo}: SubActionParams) {
     if (!config.assignToAuthor) {
-        log.success('assignToAuthor config if false, skipping auto assignment.');
+        log.success('assignToAuthor config is false, skipping auto assignment.');
         return;
     }
 

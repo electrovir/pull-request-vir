@@ -54,6 +54,12 @@ export const pullRequestVirConfigShape = defineShape({
      */
     assignToAuthor: true,
     /**
+     * If this PR's base branch is itself used as the base branch in another PR, wait until that PR
+     * is merged. This is used for chained PRs or stacked diff PRs to ensure the root of each chain
+     * is merged first.
+     */
+    waitForParentPullRequest: true,
+    /**
      * If the pull request has any "no merge" phrases (see below for a list of what those are) in
      * labels, commit messages, added lines, or the PR title, this GitHub Action will fail. If you
      * wish to disable this behavior, set this property to `false`.
