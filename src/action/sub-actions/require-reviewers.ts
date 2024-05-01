@@ -146,6 +146,13 @@ async function checkReviewRule(
     changedFiles: ReadonlyArray<string>,
 ): Promise<undefined | {failureReason: string}> {
     const author = pullRequest.user?.login || '';
+
+    if (rule.users.length === 1 && author && rule.users[0] === author) {
+        log.faint(`Ignoring rule because the author is the only rule user.`);
+        logJson(rule, 'faint');
+        return undefined;
+    }
+
     const matchesRequiredIf = rule.requiredIf.some((requiredIf) => {
         return changedFiles.some((filePath) => {
             if (isRunTimeType(requiredIf, 'string')) {
