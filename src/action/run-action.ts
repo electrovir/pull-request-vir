@@ -55,6 +55,10 @@ async function runAction() {
             throw new Error(`No pull request found for branch '${branchName}'`);
         }
 
+        if (config.ignoreDraft && pullRequest.draft) {
+            throw new Error('Aborting checks because Pull Request is a draft.');
+        }
+
         const subActionParams: SubActionParams = {
             config,
             octokit,

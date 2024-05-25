@@ -51,12 +51,16 @@ export const pullRequestVirConfigShape = defineShape({
     /**
      * If the pull request has no assignees, assign the pull request to its author. Set this
      * property to `false` to disable that behavior.
+     *
+     * @default true
      */
     assignToAuthor: true,
     /**
      * If this PR's base branch is itself used as the base branch in another PR, wait until that PR
      * is merged. This is used for chained PRs or stacked diff PRs to ensure the root of each chain
      * is merged first.
+     *
+     * @default true
      */
     waitForParentPullRequest: true,
     /**
@@ -75,8 +79,16 @@ export const pullRequestVirConfigShape = defineShape({
      * - "block merge"
      * - "block-merge"
      * - "blockmerge"
+     *
+     * @default true
      */
     blockNoMerge: true,
+    /**
+     * Ignore all checks on draft PRs.
+     *
+     * @default true
+     */
+    ignoreDraft: true,
     /**
      * Reviewer configuration. All rules entry in the array is must match. Meaning, they're combined
      * with "and", &&, or intersection logic.
