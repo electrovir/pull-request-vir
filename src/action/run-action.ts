@@ -1,6 +1,5 @@
 import {
     awaitedBlockingMap,
-    combineErrors,
     ensureError,
     extractErrorMessage,
     isTruthy,
@@ -8,14 +7,17 @@ import {
 } from '@augment-vir/common';
 import {log} from '@augment-vir/node-js';
 import {GithubPullRequest} from '../data/github';
+import {getCompleteReviewStatus} from '../data/reviews';
 import {fetchGithubPullRequest} from '../services/fetch-github-pull-request';
 import {SilentError} from '../silent.error';
 import {clearPreviousRuns} from '../util/clear-previous-runs';
 import {extractEnvVars} from '../util/extract-env-vars';
+import {logJson} from '../util/log-json';
 import {loadConfig} from './load-config';
 import {SubActionParams} from './sub-action-params';
 import {autoAssignAuthor} from './sub-actions/auto-assign-author';
 import {blockNoMerge} from './sub-actions/block-no-merge';
+import {checkPrimaryReviewers} from './sub-actions/check-primary-reviewers';
 import {requireReviewers} from './sub-actions/require-reviewers';
 import {waitForParent} from './sub-actions/wait-for-parent-pull-request';
 
@@ -28,6 +30,7 @@ const subActions: ReadonlyArray<(params: SubActionParams) => Promise<void>> = [
     blockNoMerge,
     requireReviewers,
     waitForParent,
+    checkPrimaryReviewers,
 ];
 
 async function runAction() {
@@ -59,12 +62,17 @@ async function runAction() {
             throw new Error('Aborting checks because Pull Request is a draft.');
         }
 
+        const reviews = await getCompleteReviewStatus({octokit, pullRequest, repo});
+        log.faint('current approvals');
+        logJson(reviews, 'faint');
+
         const subActionParams: SubActionParams = {
             config,
             octokit,
             pullRequest,
             repo,
             repoDir,
+            reviews,
         };
 
         const errors: Error[] = (
@@ -73,18 +81,14 @@ async function runAction() {
                     await subAction(subActionParams);
                     return undefined;
                 } catch (error) {
+                    log.error(extractErrorMessage(error));
                     return ensureError(error);
                 }
             })
         ).filter(isTruthy);
 
         if (errors.length) {
-            const errorsForMessage = errors.filter((error) => !(error instanceof SilentError));
-            if (errorsForMessage.length) {
-                throw combineErrors(errorsForMessage);
-            } else {
-                throw new SilentError();
-            }
+            throw new SilentError();
         }
 
         log.faint('');

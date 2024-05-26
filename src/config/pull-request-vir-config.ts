@@ -84,6 +84,14 @@ export const pullRequestVirConfigShape = defineShape({
      */
     blockNoMerge: true,
     /**
+     * Require a primary reviewer to be specified in the Pull Request body and require that reviewer
+     * to give an approval. Primary reviewers are detected with the string "primary reviewer" and
+     * `@` before each username.
+     *
+     * @default true
+     */
+    checkPrimaryReviewer: true,
+    /**
      * Ignore all checks on draft PRs.
      *
      * @default true

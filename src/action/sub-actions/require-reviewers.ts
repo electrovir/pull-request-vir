@@ -1,79 +1,23 @@
-import {
-    PickDeep,
-    awaitedBlockingMap,
-    isTruthy,
-    joinWithFinalConjunction,
-    wait,
-} from '@augment-vir/common';
+import {awaitedBlockingMap, isTruthy, joinWithFinalConjunction, wait} from '@augment-vir/common';
 import {log} from '@augment-vir/node-js';
 import {isRunTimeType} from 'run-time-assertions';
 import {FullReviewRule} from '../../config/pull-request-vir-config';
-import {
-    GithubGraphqlReviewState,
-    GithubPullRequest,
-    GithubRepo,
-    GithubReview,
-    GithubUser,
-    Octokit,
-} from '../../data/github';
+import {GithubPullRequest, GithubRepo, Octokit} from '../../data/github';
 import {SilentError} from '../../silent.error';
 import {logJson} from '../../util/log-json';
-import {SubActionParams} from '../sub-action-params';
+import {PullRequestReviews, SubActionParams} from '../sub-action-params';
 
-type PullRequestReviews = {[username in string]: boolean};
-
-async function fetchSubmittedReviews({
+export async function requireReviewers({
+    config,
     octokit,
-    repo,
     pullRequest,
-}: PickDeep<
-    SubActionParams,
-    ['octokit' | 'repo' | 'pullRequest', 'graphql' | 'owner' | 'repo' | 'number']
->): Promise<GithubReview[]> {
-    const results: any = await octokit.graphql(
-        /* GraphQL */ `
-            query ($owner: String!, $repo: String!, $pullNumber: Int!) {
-                repository(owner: $owner, name: $repo) {
-                    pullRequest(number: $pullNumber) {
-                        latestOpinionatedReviews(first: 10) {
-                            nodes {
-                                author {
-                                    login
-                                    avatarUrl
-                                    url
-                                }
-                                submittedAt
-                                state
-                            }
-                        }
-                    }
-                }
-            }
-        `,
-        {
-            owner: repo.owner,
-            repo: repo.repo,
-            pullNumber: pullRequest.number,
-        },
-    );
-
-    return results.repository.pullRequest.latestOpinionatedReviews.nodes;
-}
-
-export async function requireReviewers({config, octokit, pullRequest, repo}: SubActionParams) {
+    repo,
+    reviews,
+}: Readonly<Omit<SubActionParams, 'repoDir'>>) {
     if (!config.reviewRules.length) {
         log.success('No review rules, skipping review checks.');
         return;
     }
-
-    const submittedReviews = await fetchSubmittedReviews({octokit, pullRequest, repo});
-
-    const requestedReviewers = pullRequest.requested_reviewers || [];
-
-    const reviews = parseReviews(requestedReviewers, submittedReviews);
-
-    log.faint('current approvals');
-    logJson(reviews, 'faint');
 
     const changedFiles = (
         await octokit.rest.pulls.listFiles({
@@ -119,22 +63,6 @@ export async function requireReviewers({config, octokit, pullRequest, repo}: Sub
     }
 
     log.success('All review rules have passed.');
-}
-
-export function parseReviews(
-    requestedReviewers: ReadonlyArray<Readonly<GithubUser>>,
-    submittedReviews: ReadonlyArray<Readonly<GithubReview>>,
-): PullRequestReviews {
-    const approvals = submittedReviews.reduce((accum, review) => {
-        accum[review.author.login] = review.state === GithubGraphqlReviewState.Approved;
-        return accum;
-    }, {} as PullRequestReviews);
-
-    requestedReviewers.forEach((requestedReviewer) => {
-        approvals[requestedReviewer.login] = false;
-    });
-
-    return approvals;
 }
 
 async function checkReviewRule(

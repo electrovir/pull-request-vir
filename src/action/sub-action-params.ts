@@ -7,4 +7,7 @@ export type SubActionParams = Readonly<{
     pullRequest: Readonly<GithubPullRequest>;
     repo: Readonly<GithubRepo>;
     repoDir: string;
+    reviews: Readonly<PullRequestReviews>;
 }>;
+
+export type PullRequestReviews = {[username in string]: boolean};
