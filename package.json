@@ -26,7 +26,7 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
-        "compile": "virmator compile",
+        "compile": "rm -rf dist && tsc --pretty",
         "docs": "virmator docs",
         "format": "virmator format",
         "publish": "virmator publish \"npm run compile && npm run test:all\"",
@@ -37,34 +37,34 @@
         "test:docs": "virmator docs check",
         "test:format": "virmator format check",
         "test:spelling": "virmator spellcheck",
-        "test:types": "tsc --noEmit"
+        "test:types": "tsc --noEmit --pretty"
     },
     "dependencies": {
         "@actions/core": "^1.10.1",
         "@actions/github": "^6.0.0",
-        "@augment-vir/common": "^26.3.2",
-        "@augment-vir/node-js": "^26.3.2",
+        "@augment-vir/common": "^28.0.2",
+        "@augment-vir/node-js": "^28.0.2",
         "@octokit/core": "^6.1.2",
-        "@octokit/openapi-types": "^22.1.0",
-        "@octokit/rest": "^20.1.0",
-        "date-vir": "^5.1.4",
+        "@octokit/openapi-types": "^22.2.0",
+        "@octokit/rest": "^20.1.1",
+        "date-vir": "^5.2.0",
         "object-shape-tester": "^2.3.2",
-        "run-time-assertions": "^1.2.0",
+        "run-time-assertions": "^1.5.1",
         "simple-git": "^3.24.0",
-        "tsx": "^4.7.2",
-        "type-fest": "^4.15.0",
+        "tsx": "^4.11.0",
+        "type-fest": "^4.18.3",
         "virmator": "^11.5.2"
     },
     "devDependencies": {
         "@electrovir/nyc": "^15.1.0-fix0",
         "@istanbuljs/nyc-config-typescript": "^1.0.2",
-        "@types/chai": "^4.3.14",
+        "@types/chai": "^4.3.16",
         "@types/mocha": "^10.0.6",
-        "@types/node": "^20.12.7",
+        "@types/node": "^20.12.12",
         "chai": "^5.1.0",
-        "cspell": "^8.7.0",
-        "dependency-cruiser": "^16.3.1",
-        "esbuild": "^0.20.2",
+        "cspell": "^8.8.3",
+        "dependency-cruiser": "^16.3.2",
+        "esbuild": "^0.21.4",
         "execute-in-browser": "^1.0.1",
         "istanbul-smart-text-reporter": "^1.1.4",
         "markdown-code-example-inserter": "^1.0.0",
@@ -81,6 +81,6 @@
         "prettier-plugin-toml": "^2.0.1",
         "ts-node": "^10.9.2",
         "typedoc": "^0.25.13",
-        "typescript": "^5.3.3"
+        "typescript": "^5.4.5"
     }
 }
