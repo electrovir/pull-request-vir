@@ -12,7 +12,6 @@ const baseConfig = generateDepCruiserConfig({
         'not-to-unresolvable': {
             to: [
                 '@octokit/openapi-types',
-                '@review-vir/common',
             ],
         },
     },
