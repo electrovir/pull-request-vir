@@ -53,8 +53,7 @@
         "run-time-assertions": "^1.5.1",
         "simple-git": "^3.24.0",
         "tsx": "^4.11.0",
-        "type-fest": "^4.18.3",
-        "virmator": "^11.5.2"
+        "type-fest": "^4.18.3"
     },
     "devDependencies": {
         "@electrovir/nyc": "^15.1.0-fix0",
@@ -83,5 +82,8 @@
         "ts-node": "^10.9.2",
         "typedoc": "^0.25.13",
         "typescript": "^5.4.5"
+    },
+    "peerDependencies": {
+        "virmator": "*"
     }
 }
