@@ -28,10 +28,14 @@ export async function clearPreviousRuns({
 
     await awaitedForEach(previousRuns, async (workflowRun) => {
         log.faint(`Deleting run ${workflowRun.id}...`);
-        await octokit.rest.actions.deleteWorkflowRun({
-            ...repo,
-            run_id: workflowRun.id,
-        });
+        try {
+            await octokit.rest.actions.deleteWorkflowRun({
+                ...repo,
+                run_id: workflowRun.id,
+            });
+        } catch {
+            log.error(`Failed to delete run ${workflowRun.id}`);
+        }
     });
     log.faint(`Finished deleting previous '${workflowName}' runs.`);
 }
