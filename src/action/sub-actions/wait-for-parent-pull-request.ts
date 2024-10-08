@@ -1,8 +1,8 @@
-import {log} from '@augment-vir/node-js';
-import {GithubPullRequest} from '../../data/github';
-import {fetchGithubPullRequest} from '../../services/fetch-github-pull-request';
-import {SilentError} from '../../silent.error';
-import {SubActionParams} from '../sub-action-params';
+import {log} from '@augment-vir/common';
+import {GithubPullRequest} from '../../data/github.js';
+import {fetchGithubPullRequest} from '../../services/fetch-github-pull-request.js';
+import {SilentError} from '../../silent.error.js';
+import {SubActionParams} from '../sub-action-params.js';
 
 export async function waitForParent({octokit, pullRequest, config}: Readonly<SubActionParams>) {
     if (!config.waitForParentPullRequest) {
@@ -22,6 +22,5 @@ export async function waitForParent({octokit, pullRequest, config}: Readonly<Sub
         throw new SilentError();
     } else {
         log.success('No parent PR found.');
-        return;
     }
 }

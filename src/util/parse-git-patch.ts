@@ -25,16 +25,15 @@
 /**
  * Copied from
  * https://github.com/dherault/parse-git-patch/blob/cfee38ddbc82037b6db099d6f35ea4990e7fc14c/src/index.ts
- * because the npm package import wasn't working.
+ * because the npm package's import wasn't working. Modified to meet ESLint rules.
  */
 
 const hashRegex = /^From (\S*)/;
 const authorRegex = /^From:\s?([^<].*[^>])?\s+(<(.*)>)?/;
+// eslint-disable-next-line sonarjs/slow-regex
 const fileNameRegex = /^diff --git "?a\/(.*)"?\s*"?b\/(.*)"?/;
-const fileLinesRegex = /^@@ -([0-9]*),?\S* \+([0-9]*),?/;
-const similarityIndexRegex = /^similarity index /;
-const addedFileModeRegex = /^new file mode /;
-const deletedFileModeRegex = /^deleted file mode /;
+// eslint-disable-next-line sonarjs/slow-regex
+const fileLinesRegex = /^@@ -(\d*),?\S* \+(\d*),?/;
 
 export type ParsedPatchModifiedLineType = {
     added: boolean;
@@ -61,7 +60,7 @@ export type ParsedPatchType = {
 
 export function parseGitPatch(patch: string) {
     if (typeof patch !== 'string') {
-        throw new Error('Expected first argument (patch) to be a string');
+        throw new TypeError('Expected first argument (patch) to be a string');
     }
 
     const lines = patch.split('\n');
@@ -103,13 +102,13 @@ export function parseGitPatch(patch: string) {
 
         parsedPatch.files.push(fileData);
 
-        if (addedFileModeRegex.test(metaLine)) {
+        if (metaLine.startsWith('new file mode ')) {
             fileData.added = true;
         }
-        if (deletedFileModeRegex.test(metaLine)) {
+        if (metaLine.startsWith('deleted file mode ')) {
             fileData.deleted = true;
         }
-        if (similarityIndexRegex.test(metaLine)) {
+        if (metaLine.startsWith('similarity index ')) {
             return;
         }
 
@@ -144,7 +143,7 @@ export function parseGitPatch(patch: string) {
                     fileData.modifiedLines.push({
                         added: true,
                         lineNumber: nB,
-                        line: line.substr(1),
+                        line: line.slice(1),
                     });
                 } else if (line.startsWith('-')) {
                     nB--;
@@ -152,7 +151,7 @@ export function parseGitPatch(patch: string) {
                     fileData.modifiedLines.push({
                         added: false,
                         lineNumber: nA,
-                        line: line.substr(1),
+                        line: line.slice(1),
                     });
                 }
             });
@@ -164,7 +163,7 @@ export function parseGitPatch(patch: string) {
 
 function splitMetaInfo(patch: string, lines: string[]) {
     // Compatible with git output
-    if (!/^From/g.test(patch)) {
+    if (!patch.startsWith('From')) {
         return {};
     }
 

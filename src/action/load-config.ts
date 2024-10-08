@@ -1,24 +1,27 @@
 import {getInput} from '@actions/core';
+import {check} from '@augment-vir/assert';
 import {
     RequiredAndNotNull,
     ensureErrorAndPrependMessage,
     extractErrorMessage,
     filterObject,
-    isTruthy,
+    log,
+    mapObject,
+    mergeDefinedProperties,
     wrapInTry,
 } from '@augment-vir/common';
-import {log} from '@augment-vir/node-js';
 import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {assertValidShape} from 'object-shape-tester';
-import {isRunTimeType} from 'run-time-assertions';
-import {Config, PullRequestVirConfig} from '../config/define-config';
+import {Config, PullRequestVirConfig, ReviewRule} from '../config/config.js';
 import {
     FullPullRequestVirConfig,
+    FullReviewRule,
+    FullReviewRuleWithoutOverrides,
     pullRequestVirConfigShape,
-} from '../config/pull-request-vir-config';
-import {SilentError} from '../silent.error';
-import {logJson} from '../util/log-json';
+} from '../config/pull-request-vir-config.js';
+import {SilentError} from '../silent.error.js';
+import {logJson} from '../util/log-json.js';
 
 export async function loadConfig(repoDir: string): Promise<FullPullRequestVirConfig> {
     const configPath = join(
@@ -71,14 +74,37 @@ function sanitizeConfig(rawConfig: PullRequestVirConfig): FullPullRequestVirConf
         ...pullRequestVirConfigShape.defaultValue,
         ...sanitizedConfig,
         reviewRules: (sanitizedConfig.reviewRules || []).map((reviewRule) => {
-            return {
+            const sanitizedRuleWithoutOverrides: FullReviewRuleWithoutOverrides = {
                 ...reviewRule,
-                users: Array.from(new Set(reviewRule.users.filter(isTruthy))),
+                users: Array.from(new Set(reviewRule.users.filter(check.isTruthy))),
                 requiredIf: (reviewRule.requiredIf || []).filter(
-                    (entry) => entry && (isRunTimeType(entry, 'string') || entry instanceof RegExp),
+                    (entry) => entry && (check.isString(entry) || entry instanceof RegExp),
                 ),
                 required: reviewRule.required ?? 'all',
             };
+            return {
+                ...sanitizedRuleWithoutOverrides,
+                userOverrides: sanitizeUserOverrides(
+                    reviewRule.userOverrides,
+                    sanitizedRuleWithoutOverrides,
+                ),
+            };
         }),
     };
+}
+
+function sanitizeUserOverrides(
+    userOverrides: Readonly<ReviewRule['userOverrides']>,
+    fallbacks: FullReviewRuleWithoutOverrides,
+): FullReviewRule['userOverrides'] {
+    if (!userOverrides || !Object.keys(userOverrides).length) {
+        return {};
+    }
+
+    return mapObject(userOverrides, (key, value) => {
+        return {
+            key,
+            value: mergeDefinedProperties(fallbacks, value),
+        };
+    });
 }

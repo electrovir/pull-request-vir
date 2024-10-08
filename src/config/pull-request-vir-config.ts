@@ -1,11 +1,11 @@
-import {classShape, defineShape, exact, or} from 'object-shape-tester';
+import {and, classShape, defineShape, exact, indexedKeys, or} from 'object-shape-tester';
 
 /**
- * The full, sanitized shape for a review rule.
+ * The sanitized shape for an individual rule without user overrides.
  *
- * @internal
+ * @category Shape
  */
-export const fullReviewRuleShape = defineShape({
+export const fullReviewRuleShapeWithoutOverrides = defineShape({
     /**
      * Whether the listed users should be automatically added to the pull request or not.
      *
@@ -17,8 +17,7 @@ export const fullReviewRuleShape = defineShape({
      * A list of user names to consider as reviewers. No `@` or other prefix is necessary, just type
      * their username directly.
      *
-     * @example
-     *     users: ['electrovir'],
+     * @example Users: ['electrovir'],
      */
     users: [''],
     /**
@@ -36,16 +35,38 @@ export const fullReviewRuleShape = defineShape({
 });
 
 /**
+ * Base type for {@link FullReviewRule} that lacks `userOverrides`.
+ *
+ * @category Internal
+ */
+export type FullReviewRuleWithoutOverrides = typeof fullReviewRuleShapeWithoutOverrides.runtimeType;
+
+/**
+ * The full, sanitized shape for a review rule.
+ *
+ * @category Shape
+ */
+export const fullReviewRuleShape = defineShape(
+    and(fullReviewRuleShapeWithoutOverrides, {
+        userOverrides: indexedKeys({
+            keys: '',
+            values: fullReviewRuleShapeWithoutOverrides,
+            required: false,
+        }),
+    }),
+);
+
+/**
  * A full, sanitized review rule.
  *
- * @internal
+ * @category Internal
  */
-export type FullReviewRule = typeof fullReviewRuleShape.runTimeType;
+export type FullReviewRule = typeof fullReviewRuleShape.runtimeType;
 
 /**
  * Shape definition for verifying a config's validity.
  *
- * @internal
+ * @category Shape
  */
 export const pullRequestVirConfigShape = defineShape({
     /**
@@ -107,6 +128,6 @@ export const pullRequestVirConfigShape = defineShape({
 /**
  * Full config used by pull-request-vir.
  *
- * @internal
+ * @category Internal
  */
-export type FullPullRequestVirConfig = typeof pullRequestVirConfigShape.runTimeType;
+export type FullPullRequestVirConfig = typeof pullRequestVirConfigShape.runtimeType;

@@ -1,6 +1,6 @@
 import type {getOctokit} from '@actions/github';
 import type {ArrayElement} from '@augment-vir/common';
-import {components} from '@octokit/openapi-types';
+import type {components} from '@octokit/openapi-types';
 import {defineShape, enumShape, or} from 'object-shape-tester';
 
 export type GithubActionsEventTriggerName = ArrayElement<
@@ -57,4 +57,4 @@ export const githubReviewShape = defineShape(
     },
     true,
 );
-export type GithubReview = typeof githubReviewShape.runTimeType;
+export type GithubReview = typeof githubReviewShape.runtimeType;

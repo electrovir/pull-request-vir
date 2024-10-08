@@ -6,13 +6,13 @@ type docs: https://electrovir.github.io/pull-request-vir
 
 ## usage
 
-1.  install this package into whatever repo you're planning to use it
-    -   `npm i pull-request-vir`
-2.  create a config using that import
+1.  Install this package into whatever repo you're planning to use it.
+    -   `npm i -D pull-request-vir`
+2.  Create a config file somewhere in the repo (not within source code).
 
-    1. the config file can be named anything but must be JavaScript or TypeScript
-    2. import `definePullRequestVirConfig` into the config file
-    3. export its output as the default output:
+    1. The config file can be named anything but must be JavaScript or TypeScript.
+    2. If using TypeScript, import the `Config` type into the config file.
+    3. Create a config object that matches that type and export it as the default output:
 
         ```typescript
         import type {Config} from 'pull-request-vir';
@@ -36,7 +36,7 @@ type docs: https://electrovir.github.io/pull-request-vir
         };
         ```
 
-3.  create a GitHub Actions workflow that uses `pull-request-vir`:
+3.  Define a GitHub Actions workflow that uses `pull-request-vir`:
 
     ```yaml
     # recommended triggers
@@ -58,11 +58,11 @@ type docs: https://electrovir.github.io/pull-request-vir
         merge-checks:
             runs-on: ubuntu-latest
             steps:
-                # you must checkout your repo so that pull-request-vir can read your config
+                # pull-request-vir needs the repo checked out so it can read your config
                 - uses: actions/checkout@v4.1.1
                 - uses: electrovir/pull-request-vir@latest
                   with:
                       config_file: relative/path/to/config.ts
     ```
 
-4.  push to GitHub and (hopefully) watch the magic
+4.  Push to GitHub and watch the magic.

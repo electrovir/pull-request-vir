@@ -1,5 +1,7 @@
-import {assert} from 'chai';
-import {includesNoMergePhrase} from './block-no-merge';
+import {assert} from '@augment-vir/assert';
+import {it} from '@augment-vir/test';
+import {describe} from 'node:test';
+import {includesNoMergePhrase} from './block-no-merge.js';
 
 describe(includesNoMergePhrase.name, () => {
     const matchCases = [

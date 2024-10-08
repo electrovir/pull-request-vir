@@ -10,13 +10,14 @@ const pullRequestVirNodeModulesDir = join(pullRequestVirRootDir, 'node_modules')
 async function runTypeScriptAction() {
     if (!existsSync(pullRequestVirNodeModulesDir)) {
         console.info('Installing dependencies...');
+        // eslint-disable-next-line sonarjs/no-os-command-from-path
         execSync('npm ci --omit=dev', {
             cwd: pullRequestVirRootDir,
         });
     }
 
     console.info('Starting action...');
-    const augmentVir = await import('@augment-vir/node-js');
+    const augmentVir = await import('@augment-vir/node');
     const {error} = await augmentVir.runShellCommand(
         `npx tsx ${augmentVir.interpolationSafeWindowsPath(tsEntryPointFile)}`,
         {

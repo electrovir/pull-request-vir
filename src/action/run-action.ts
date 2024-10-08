@@ -1,31 +1,32 @@
+import {check} from '@augment-vir/assert';
 import {
     awaitedBlockingMap,
     ensureError,
     extractErrorMessage,
-    isTruthy,
+    log,
     wait,
+    type MaybePromise,
 } from '@augment-vir/common';
-import {log} from '@augment-vir/node-js';
-import {GithubPullRequest} from '../data/github';
-import {getCompleteReviewStatus} from '../data/reviews';
-import {fetchGithubPullRequest} from '../services/fetch-github-pull-request';
-import {SilentError} from '../silent.error';
-import {clearPreviousRuns} from '../util/clear-previous-runs';
-import {extractEnvVars} from '../util/extract-env-vars';
-import {logJson} from '../util/log-json';
-import {loadConfig} from './load-config';
-import {SubActionParams} from './sub-action-params';
-import {autoAssignAuthor} from './sub-actions/auto-assign-author';
-import {blockNoMerge} from './sub-actions/block-no-merge';
-import {checkPrimaryReviewers} from './sub-actions/check-primary-reviewers';
-import {requireReviewers} from './sub-actions/require-reviewers';
-import {waitForParent} from './sub-actions/wait-for-parent-pull-request';
+import {GithubPullRequest} from '../data/github.js';
+import {getCompleteReviewStatus} from '../data/reviews.js';
+import {fetchGithubPullRequest} from '../services/fetch-github-pull-request.js';
+import {SilentError} from '../silent.error.js';
+import {clearPreviousRuns} from '../util/clear-previous-runs.js';
+import {extractEnvVars} from '../util/extract-env-vars.js';
+import {logJson} from '../util/log-json.js';
+import {loadConfig} from './load-config.js';
+import {SubActionParams} from './sub-action-params.js';
+import {autoAssignAuthor} from './sub-actions/auto-assign-author.js';
+import {blockNoMerge} from './sub-actions/block-no-merge.js';
+import {checkPrimaryReviewers} from './sub-actions/check-primary-reviewers.js';
+import {requireReviewers} from './sub-actions/require-reviewers.js';
+import {waitForParent} from './sub-actions/wait-for-parent-pull-request.js';
 
 /**
  * These are in order of least likely to fail to more likely to fail, so we can run as many of them
  * as possible before they fail.
  */
-const subActions: ReadonlyArray<(params: SubActionParams) => Promise<void>> = [
+const subActions: ReadonlyArray<(params: SubActionParams) => MaybePromise<void>> = [
     autoAssignAuthor,
     blockNoMerge,
     requireReviewers,
@@ -38,7 +39,7 @@ async function runAction() {
      * Wait because GitHub is slow to update, which causes race conditions with this action being
      * triggered and it reading the data.
      */
-    await wait(10_000);
+    await wait({seconds: 10});
 
     try {
         const {branchName, currentRunId, octokit, repo, repoDir, workflowName} = extractEnvVars();
@@ -85,7 +86,7 @@ async function runAction() {
                     return ensureError(error);
                 }
             })
-        ).filter(isTruthy);
+        ).filter(check.isTruthy);
 
         if (errors.length) {
             throw new SilentError();
@@ -103,4 +104,4 @@ async function runAction() {
     }
 }
 
-runAction();
+await runAction();

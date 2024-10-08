@@ -1,9 +1,9 @@
 import {getInput} from '@actions/core';
 import {getOctokit, context as githubContext} from '@actions/github';
-import {log} from '@augment-vir/node-js';
-import {existsSync} from 'fs';
-import {basename} from 'path';
-import {GithubRepo, Octokit} from '../data/github';
+import {log} from '@augment-vir/common';
+import {existsSync} from 'node:fs';
+import {basename} from 'node:path';
+import {GithubRepo, Octokit} from '../data/github.js';
 
 export function extractEnvVars(): {
     repoDir: string;
@@ -31,7 +31,7 @@ export function extractEnvVars(): {
     }
     const currentRunId = githubContext.runId;
     log.faint(`run id: ${currentRunId}`);
-    const workflowName = basename(process.env.GITHUB_WORKFLOW_REF?.replace(/\@ref.+$/, '') || '');
+    const workflowName = basename(process.env.GITHUB_WORKFLOW_REF?.replace(/@ref.+$/, '') || '');
     log.faint(`workflow name: ${workflowName}`);
     if (!workflowName) {
         throw new Error(`Missing workflow name: '${workflowName}'`);

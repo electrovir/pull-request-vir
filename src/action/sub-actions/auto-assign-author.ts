@@ -1,5 +1,5 @@
-import {log} from '@augment-vir/node-js';
-import {SubActionParams} from '../sub-action-params';
+import {log} from '@augment-vir/common';
+import {SubActionParams} from '../sub-action-params.js';
 
 export async function autoAssignAuthor({config, octokit, pullRequest, repo}: SubActionParams) {
     if (!config.assignToAuthor) {

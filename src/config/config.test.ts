@@ -1,4 +1,5 @@
-import {Config, PullRequestVirConfig, ReviewRule} from './define-config';
+import {describe, it} from '@augment-vir/test';
+import {Config, PullRequestVirConfig, ReviewRule} from './config.js';
 
 describe('PullRequestVirConfig', () => {
     it('allows an empty object', () => {
@@ -65,6 +66,26 @@ describe('Config', () => {
                         'stuff',
                         /stuff/,
                     ],
+                },
+            ],
+        };
+    });
+    it('allows user overrides', () => {
+        const config: Config = {
+            reviewRules: [
+                {
+                    autoAdd: true,
+                    users: [
+                        'a',
+                        'b',
+                    ],
+                    required: 2,
+                    requiredIf: [],
+                    userOverrides: {
+                        c: {
+                            required: 1,
+                        },
+                    },
                 },
             ],
         };

@@ -1,11 +1,16 @@
-import {awaitedBlockingMap, isTruthy, joinWithFinalConjunction, wait} from '@augment-vir/common';
-import {log} from '@augment-vir/node-js';
-import {isRunTimeType} from 'run-time-assertions';
-import {FullReviewRule} from '../../config/pull-request-vir-config';
-import {GithubPullRequest, GithubRepo, Octokit} from '../../data/github';
-import {SilentError} from '../../silent.error';
-import {logJson} from '../../util/log-json';
-import {PullRequestReviews, SubActionParams} from '../sub-action-params';
+import {check} from '@augment-vir/assert';
+import {
+    awaitedBlockingMap,
+    joinWithFinalConjunction,
+    log,
+    wait,
+    type SelectFrom,
+} from '@augment-vir/common';
+import {FullReviewRule} from '../../config/pull-request-vir-config.js';
+import {GithubPullRequest, GithubRepo, Octokit} from '../../data/github.js';
+import {SilentError} from '../../silent.error.js';
+import {logJson} from '../../util/log-json.js';
+import {PullRequestReviews, SubActionParams} from '../sub-action-params.js';
 
 export async function requireReviewers({
     config,
@@ -13,7 +18,32 @@ export async function requireReviewers({
     pullRequest,
     repo,
     reviews,
-}: Readonly<Omit<SubActionParams, 'repoDir'>>) {
+}: Readonly<
+    SelectFrom<
+        SubActionParams,
+        {
+            config: {
+                reviewRules: true;
+            };
+            octokit: {
+                rest: {
+                    pulls: {
+                        listFiles: true;
+                        requestReviewers: true;
+                    };
+                };
+            };
+            repo: true;
+            reviews: true;
+            pullRequest: {
+                number: true;
+                user: {
+                    login: true;
+                };
+            };
+        }
+    >
+>) {
     if (!config.reviewRules.length) {
         log.success('No review rules, skipping review checks.');
         return;
@@ -29,7 +59,7 @@ export async function requireReviewers({
     log.faint('changed files:');
     logJson(changedFiles, 'faint');
     /** Wait for logging to finish? Cause GitHub Actions jumbles them all up. */
-    await wait(100);
+    await wait({milliseconds: 100});
 
     const failedRules = (
         await awaitedBlockingMap(config.reviewRules, async (rule, index) => {
@@ -51,10 +81,10 @@ export async function requireReviewers({
                 rule,
             };
         })
-    ).filter(isTruthy);
+    ).filter(check.isTruthy);
 
     /** Wait for logging to finish? Cause GitHub Actions jumbles them all up. */
-    await wait(100);
+    await wait({milliseconds: 100});
 
     if (failedRules.length) {
         log.error('Failed review rules.');
@@ -67,13 +97,36 @@ export async function requireReviewers({
 
 async function checkReviewRule(
     reviews: Readonly<PullRequestReviews>,
-    rule: Readonly<FullReviewRule>,
-    octokit: Octokit,
-    pullRequest: Readonly<Pick<GithubPullRequest, 'number' | 'user'>>,
+    rawRule: Readonly<FullReviewRule>,
+    octokit: Readonly<
+        SelectFrom<
+            Octokit,
+            {
+                rest: {
+                    pulls: {
+                        requestReviewers: true;
+                    };
+                };
+            }
+        >
+    >,
+    pullRequest: Readonly<
+        SelectFrom<
+            GithubPullRequest,
+            {
+                number: true;
+                user: {
+                    login: true;
+                };
+            }
+        >
+    >,
     repo: Readonly<GithubRepo>,
     changedFiles: ReadonlyArray<string>,
 ): Promise<undefined | {failureReason: string}> {
     const author = pullRequest.user?.login || '';
+    const ruleOverride = author ? rawRule.userOverrides[author] : undefined;
+    const rule = ruleOverride ?? rawRule;
 
     if (rule.users.length === 1 && author && rule.users[0] === author) {
         log.faint(`Ignoring rule because the author is the only rule user.`);
@@ -83,7 +136,7 @@ async function checkReviewRule(
 
     const matchesRequiredIf = rule.requiredIf.some((requiredIf) => {
         return changedFiles.some((filePath) => {
-            if (isRunTimeType(requiredIf, 'string')) {
+            if (check.isString(requiredIf)) {
                 return filePath.includes(requiredIf);
             } else {
                 return filePath.match(requiredIf);
@@ -132,7 +185,7 @@ async function checkReviewRule(
 
     if (rule.autoAdd && reviewers.notRequested.length) {
         log.faint(`Adding reviewers: ${joinWithFinalConjunction(reviewers.notRequested, 'and')}`);
-        const response = await octokit.rest.pulls.requestReviewers({
+        await octokit.rest.pulls.requestReviewers({
             ...repo,
             pull_number: pullRequest.number,
             reviewers: reviewers.notRequested,

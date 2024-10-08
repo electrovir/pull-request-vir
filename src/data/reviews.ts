@@ -1,5 +1,5 @@
-import {PickDeep} from '@augment-vir/common';
-import {PullRequestReviews, SubActionParams} from '../action/sub-action-params';
+import {type SelectFrom} from '@augment-vir/common';
+import {PullRequestReviews, SubActionParams} from '../action/sub-action-params.js';
 import {
     GithubGraphqlReviewState,
     GithubPullRequest,
@@ -7,7 +7,7 @@ import {
     GithubReview,
     GithubUser,
     Octokit,
-} from './github';
+} from './github.js';
 
 export async function getCompleteReviewStatus({
     pullRequest,
@@ -45,9 +45,20 @@ async function fetchSubmittedReviews({
     octokit,
     repo,
     pullRequest,
-}: PickDeep<
+}: SelectFrom<
     SubActionParams,
-    ['octokit' | 'repo' | 'pullRequest', 'graphql' | 'owner' | 'repo' | 'number']
+    {
+        octokit: {
+            graphql: true;
+        };
+        repo: {
+            owner: true;
+            repo: true;
+        };
+        pullRequest: {
+            number: true;
+        };
+    }
 >): Promise<GithubReview[]> {
     const results: any = await octokit.graphql(
         /* GraphQL */ `

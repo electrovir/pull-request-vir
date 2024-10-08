@@ -1,2 +1,2 @@
-export * from './config/define-config';
-export * from './config/pull-request-vir-config';
+export * from './config/config.js';
+export * from './config/pull-request-vir-config.js';

@@ -1,5 +1,5 @@
 import {context as githubContext} from '@actions/github';
-import {GithubPullRequest, Octokit} from '../data/github';
+import {GithubPullRequest, Octokit} from '../data/github.js';
 
 export async function fetchGithubPullRequest(
     octokit: Readonly<Octokit>,

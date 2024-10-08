@@ -1,5 +1,5 @@
-import {FullPullRequestVirConfig} from '../config/pull-request-vir-config';
-import {GithubPullRequest, GithubRepo, Octokit} from '../data/github';
+import {FullPullRequestVirConfig} from '../config/pull-request-vir-config.js';
+import {GithubPullRequest, GithubRepo, Octokit} from '../data/github.js';
 
 export type SubActionParams = Readonly<{
     config: Readonly<FullPullRequestVirConfig>;
