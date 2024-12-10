@@ -15,12 +15,13 @@ import {SilentError} from '../silent.error.js';
 import {clearPreviousRuns} from '../util/clear-previous-runs.js';
 import {extractEnvVars} from '../util/extract-env-vars.js';
 import {logJson} from '../util/log-json.js';
+import {determineCodeOwners} from './code-owners.js';
 import {loadConfig} from './load-config.js';
 import {SubActionParams} from './sub-action-params.js';
 import {autoAssignAuthor} from './sub-actions/auto-assign-author.js';
 import {blockNoMerge} from './sub-actions/block-no-merge.js';
 import {checkPrimaryReviewers} from './sub-actions/check-primary-reviewers.js';
-import {determineCodeOwners} from './sub-actions/code-owners.js';
+import {insertCodeOwners} from './sub-actions/insert-code-owners.js';
 import {requireReviewers} from './sub-actions/require-reviewers.js';
 import {waitForParent} from './sub-actions/wait-for-parent-pull-request.js';
 
@@ -29,6 +30,7 @@ import {waitForParent} from './sub-actions/wait-for-parent-pull-request.js';
  * as possible before they fail.
  */
 const subActions: ReadonlyArray<(params: SubActionParams) => MaybePromise<void>> = [
+    insertCodeOwners,
     autoAssignAuthor,
     blockNoMerge,
     requireReviewers,
@@ -68,7 +70,7 @@ async function runAction() {
         const reviews = await getCompleteReviewStatus({octokit, pullRequest, repo});
         log.faint('current approvals');
         logJson(reviews, 'faint');
-        const git = simpleGit();
+        const git = simpleGit(repoDir);
 
         const changedFilePaths = (
             await git.diff([
@@ -81,9 +83,13 @@ async function runAction() {
             .trim()
             .split('\n');
 
+        log.faint('changed files');
         logJson(changedFilePaths, 'faint');
 
         const codeOwners = determineCodeOwners(config.reviewRules || [], changedFilePaths);
+
+        log.faint('code owners');
+        logJson(codeOwners, 'faint');
 
         const subActionParams: SubActionParams = {
             config,

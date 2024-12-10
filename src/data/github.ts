@@ -28,6 +28,7 @@ export type Octokit = ReturnType<typeof getOctokit>;
 
 export type GithubRepo = {
     owner: string;
+    /** The repo name. */
     repo: string;
 };
 

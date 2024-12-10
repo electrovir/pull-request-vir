@@ -1,5 +1,5 @@
 import {check} from '@augment-vir/assert';
-import {type ReviewRule} from '../../config/config.js';
+import {type ReviewRule} from '../config/config.js';
 
 /**
  * @returns An array of usernames corresponding to the users that match code owner rules for this
