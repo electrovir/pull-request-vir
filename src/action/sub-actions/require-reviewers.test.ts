@@ -1,12 +1,12 @@
 import {describe, itCases} from '@augment-vir/test';
-import {FullPullRequestVirConfig} from '../../config/pull-request-vir-config.js';
+import type {PullRequestVirConfig} from '../../config/config.js';
 import {SilentError} from '../../silent.error.js';
 import {PullRequestReviews} from '../sub-action-params.js';
 import {requireReviewers} from './require-reviewers.js';
 
 describe(requireReviewers.name, () => {
     async function testRequireReviewers(
-        rules: FullPullRequestVirConfig['reviewRules'],
+        rules: NonNullable<PullRequestVirConfig['reviewRules']>,
         reviews: Readonly<PullRequestReviews>,
         author: string = 'test',
         changedFiles: string[] = [],
@@ -43,6 +43,7 @@ describe(requireReviewers.name, () => {
                 repo: 'test',
             },
             reviews,
+            codeOwners: [],
         });
     }
 
@@ -62,7 +63,7 @@ describe(requireReviewers.name, () => {
                     {
                         autoAdd: true,
                         required: 1,
-                        requiredIf: [],
+                        codeOwns: {},
                         userOverrides: {},
                         users: [
                             'a',
@@ -83,12 +84,12 @@ describe(requireReviewers.name, () => {
                     {
                         autoAdd: true,
                         required: 2,
-                        requiredIf: [],
+                        codeOwns: {},
                         userOverrides: {
                             c: {
                                 autoAdd: true,
                                 required: 1,
-                                requiredIf: [],
+                                codeOwns: undefined,
                                 users: [
                                     'a',
                                     'b',
@@ -116,12 +117,12 @@ describe(requireReviewers.name, () => {
                     {
                         autoAdd: true,
                         required: 2,
-                        requiredIf: [],
+                        codeOwns: {},
                         userOverrides: {
                             c: {
                                 autoAdd: true,
                                 required: 1,
-                                requiredIf: [],
+                                codeOwns: {},
                                 users: [
                                     'a',
                                     'b',

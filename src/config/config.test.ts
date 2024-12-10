@@ -17,10 +17,12 @@ describe('ReviewRule', () => {
                     'user2',
                 ],
                 required: 'all',
-                requiredIf: [
-                    'hi',
-                    /hi/,
-                ],
+                codeOwns: {
+                    paths: [
+                        'hi',
+                        /hi/,
+                    ],
+                },
             },
             {
                 autoAdd: false,
@@ -62,10 +64,12 @@ describe('Config', () => {
                         'ghost',
                     ],
                     required: 2,
-                    requiredIf: [
-                        'stuff',
-                        /stuff/,
-                    ],
+                    codeOwns: {
+                        paths: [
+                            'stuff',
+                            /stuff/,
+                        ],
+                    },
                 },
             ],
         };
@@ -80,7 +84,7 @@ describe('Config', () => {
                         'b',
                     ],
                     required: 2,
-                    requiredIf: [],
+                    codeOwns: {},
                     userOverrides: {
                         c: {
                             required: 1,

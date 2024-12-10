@@ -1,13 +1,17 @@
-import {FullPullRequestVirConfig} from '../config/pull-request-vir-config.js';
+import {type SimpleGit} from 'simple-git';
+import {type PullRequestVirConfig} from '../config/config.js';
 import {GithubPullRequest, GithubRepo, Octokit} from '../data/github.js';
 
 export type SubActionParams = Readonly<{
-    config: Readonly<FullPullRequestVirConfig>;
+    config: Readonly<PullRequestVirConfig>;
     octokit: Readonly<Octokit>;
+    git: Readonly<SimpleGit>;
     pullRequest: Readonly<GithubPullRequest>;
     repo: Readonly<GithubRepo>;
     repoDir: string;
     reviews: Readonly<PullRequestReviews>;
+    codeOwners: ReadonlyArray<string>;
+    changedFilePaths: ReadonlyArray<string>;
 }>;
 
 export type PullRequestReviews = {[username in string]: boolean};

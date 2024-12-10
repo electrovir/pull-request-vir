@@ -1,29 +1,29 @@
 import {getInput} from '@actions/core';
 import {check} from '@augment-vir/assert';
 import {
-    RequiredAndNotNull,
     ensureErrorAndPrependMessage,
     extractErrorMessage,
     filterObject,
     log,
     mapObject,
+    mapObjectValues,
     mergeDefinedProperties,
     wrapInTry,
 } from '@augment-vir/common';
 import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {assertValidShape} from 'object-shape-tester';
-import {Config, PullRequestVirConfig, ReviewRule} from '../config/config.js';
 import {
-    FullPullRequestVirConfig,
-    FullReviewRule,
-    FullReviewRuleWithoutOverrides,
+    Config,
     pullRequestVirConfigShape,
-} from '../config/pull-request-vir-config.js';
+    type PullRequestVirConfig,
+    type ReviewRule,
+    type ReviewRuleWithoutOverrides,
+} from '../config/config.js';
 import {SilentError} from '../silent.error.js';
 import {logJson} from '../util/log-json.js';
 
-export async function loadConfig(repoDir: string): Promise<FullPullRequestVirConfig> {
+export async function loadConfig(repoDir: string): Promise<PullRequestVirConfig> {
     const configPath = join(
         repoDir,
         getInput('config_file', {trimWhitespace: true}) || './configs/pull-request-vir.config.ts',
@@ -65,21 +65,26 @@ export async function loadConfig(repoDir: string): Promise<FullPullRequestVirCon
     return sanitizedConfig;
 }
 
-function sanitizeConfig(rawConfig: PullRequestVirConfig): FullPullRequestVirConfig {
-    const sanitizedConfig = filterObject(rawConfig, (key, value) => {
+function sanitizeConfig(rawConfig: PullRequestVirConfig): PullRequestVirConfig {
+    const sanitizedConfig = filterObject(rawConfig, (key, value: unknown) => {
         return value != undefined;
-    }) as Partial<RequiredAndNotNull<PullRequestVirConfig>>;
+    });
 
     return {
         ...pullRequestVirConfigShape.defaultValue,
         ...sanitizedConfig,
-        reviewRules: (sanitizedConfig.reviewRules || []).map((reviewRule) => {
-            const sanitizedRuleWithoutOverrides: FullReviewRuleWithoutOverrides = {
+        reviewRules: (sanitizedConfig.reviewRules || []).map((reviewRule): ReviewRule => {
+            const sanitizedRuleWithoutOverrides: ReviewRuleWithoutOverrides = {
                 ...reviewRule,
-                users: Array.from(new Set(reviewRule.users.filter(check.isTruthy))),
-                requiredIf: (reviewRule.requiredIf || []).filter(
-                    (entry) => entry && (check.isString(entry) || entry instanceof RegExp),
-                ),
+                users: Array.from(new Set((reviewRule.users || []).filter(check.isTruthy))),
+                codeOwns: reviewRule.codeOwns
+                    ? mapObjectValues(reviewRule.codeOwns, (key, paths) => {
+                          return paths.filter(
+                              (path) =>
+                                  path && (check.isString(path) || check.instanceOf(path, RegExp)),
+                          );
+                      })
+                    : undefined,
                 required: reviewRule.required ?? 'all',
             };
             return {
@@ -95,8 +100,8 @@ function sanitizeConfig(rawConfig: PullRequestVirConfig): FullPullRequestVirConf
 
 function sanitizeUserOverrides(
     userOverrides: Readonly<ReviewRule['userOverrides']>,
-    fallbacks: FullReviewRuleWithoutOverrides,
-): FullReviewRule['userOverrides'] {
+    fallbacks: ReviewRuleWithoutOverrides,
+): ReviewRule['userOverrides'] {
     if (!userOverrides || !Object.keys(userOverrides).length) {
         return {};
     }

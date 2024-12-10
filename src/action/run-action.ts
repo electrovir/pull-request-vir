@@ -7,6 +7,7 @@ import {
     wait,
     type MaybePromise,
 } from '@augment-vir/common';
+import simpleGit from 'simple-git';
 import {GithubPullRequest} from '../data/github.js';
 import {getCompleteReviewStatus} from '../data/reviews.js';
 import {fetchGithubPullRequest} from '../services/fetch-github-pull-request.js';
@@ -19,6 +20,7 @@ import {SubActionParams} from './sub-action-params.js';
 import {autoAssignAuthor} from './sub-actions/auto-assign-author.js';
 import {blockNoMerge} from './sub-actions/block-no-merge.js';
 import {checkPrimaryReviewers} from './sub-actions/check-primary-reviewers.js';
+import {determineCodeOwners} from './sub-actions/code-owners.js';
 import {requireReviewers} from './sub-actions/require-reviewers.js';
 import {waitForParent} from './sub-actions/wait-for-parent-pull-request.js';
 
@@ -66,6 +68,22 @@ async function runAction() {
         const reviews = await getCompleteReviewStatus({octokit, pullRequest, repo});
         log.faint('current approvals');
         logJson(reviews, 'faint');
+        const git = simpleGit();
+
+        const changedFilePaths = (
+            await git.diff([
+                '--name-only',
+                // cspell:ignore ACMR
+                '--diff-filter=ACMR',
+                pullRequest.base.sha,
+            ])
+        )
+            .trim()
+            .split('\n');
+
+        logJson(changedFilePaths, 'faint');
+
+        const codeOwners = determineCodeOwners(config.reviewRules || [], changedFilePaths);
 
         const subActionParams: SubActionParams = {
             config,
@@ -74,6 +92,9 @@ async function runAction() {
             repo,
             repoDir,
             reviews,
+            codeOwners,
+            git,
+            changedFilePaths,
         };
 
         const errors: Error[] = (

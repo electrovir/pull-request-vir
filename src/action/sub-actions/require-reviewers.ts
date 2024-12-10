@@ -6,7 +6,7 @@ import {
     wait,
     type SelectFrom,
 } from '@augment-vir/common';
-import {FullReviewRule} from '../../config/pull-request-vir-config.js';
+import type {ReviewRule} from '../../config/config.js';
 import {GithubPullRequest, GithubRepo, Octokit} from '../../data/github.js';
 import {SilentError} from '../../silent.error.js';
 import {logJson} from '../../util/log-json.js';
@@ -18,6 +18,7 @@ export async function requireReviewers({
     pullRequest,
     repo,
     reviews,
+    codeOwners,
 }: Readonly<
     SelectFrom<
         SubActionParams,
@@ -41,36 +42,29 @@ export async function requireReviewers({
                     login: true;
                 };
             };
+            codeOwners: true;
         }
     >
->) {
-    if (!config.reviewRules.length) {
+>): Promise<void> {
+    if (!config.reviewRules?.length) {
         log.success('No review rules, skipping review checks.');
         return;
     }
 
-    const changedFiles = (
-        await octokit.rest.pulls.listFiles({
-            ...repo,
-            pull_number: pullRequest.number,
-        })
-    ).data.map((file) => file.filename);
-
-    log.faint('changed files:');
-    logJson(changedFiles, 'faint');
     /** Wait for logging to finish? Cause GitHub Actions jumbles them all up. */
     await wait({milliseconds: 100});
 
     const failedRules = (
         await awaitedBlockingMap(config.reviewRules, async (rule, index) => {
-            const failure = await checkReviewRule(
+            const failure = await checkReviewRule({
                 reviews,
-                rule,
+                rawRule: rule,
                 octokit,
                 pullRequest,
                 repo,
-                changedFiles,
-            );
+                codeOwners,
+                ruleIndex: index,
+            });
             if (!failure) {
                 return undefined;
             }
@@ -95,9 +89,17 @@ export async function requireReviewers({
     log.success('All review rules have passed.');
 }
 
-async function checkReviewRule(
-    reviews: Readonly<PullRequestReviews>,
-    rawRule: Readonly<FullReviewRule>,
+async function checkReviewRule({
+    reviews,
+    rawRule,
+    octokit,
+    pullRequest,
+    repo,
+    codeOwners,
+    ruleIndex,
+}: {
+    reviews: Readonly<PullRequestReviews>;
+    rawRule: Readonly<ReviewRule>;
     octokit: Readonly<
         SelectFrom<
             Octokit,
@@ -109,7 +111,7 @@ async function checkReviewRule(
                 };
             }
         >
-    >,
+    >;
     pullRequest: Readonly<
         SelectFrom<
             GithubPullRequest,
@@ -120,13 +122,19 @@ async function checkReviewRule(
                 };
             }
         >
-    >,
-    repo: Readonly<GithubRepo>,
-    changedFiles: ReadonlyArray<string>,
-): Promise<undefined | {failureReason: string}> {
+    >;
+    repo: Readonly<GithubRepo>;
+    codeOwners: ReadonlyArray<string>;
+    ruleIndex: number;
+}): Promise<undefined | {failureReason: string}> {
     const author = pullRequest.user?.login || '';
-    const ruleOverride = author ? rawRule.userOverrides[author] : undefined;
+    const ruleOverride = author ? rawRule.userOverrides?.[author] : undefined;
     const rule = ruleOverride ?? rawRule;
+
+    if (!rule.users || !check.isLengthAtLeast(rule.users, 1)) {
+        log.warning(`No users for rule at index '${ruleIndex}'`);
+        return undefined;
+    }
 
     if (rule.users.length === 1 && author && rule.users[0] === author) {
         log.faint(`Ignoring rule because the author is the only rule user.`);
@@ -134,18 +142,11 @@ async function checkReviewRule(
         return undefined;
     }
 
-    const matchesRequiredIf = rule.requiredIf.some((requiredIf) => {
-        return changedFiles.some((filePath) => {
-            if (check.isString(requiredIf)) {
-                return filePath.includes(requiredIf);
-            } else {
-                return filePath.match(requiredIf);
-            }
-        });
-    });
-
-    if (rule.requiredIf.length && !matchesRequiredIf) {
-        /** Ignore this rule because its `requiredIf` field is not matched. */
+    if (
+        rule.codeOwns?.paths?.length &&
+        !rule.users.some((username) => codeOwners.includes(username))
+    ) {
+        /** Ignore this rule because its `codeOwns` field is not matched. */
         return undefined;
     }
 
@@ -181,7 +182,8 @@ async function checkReviewRule(
         },
     );
 
-    const requiredCount: number = rule.required === 'all' ? rule.users.length : rule.required;
+    const requiredCount: number =
+        rule.required == undefined || rule.required === 'all' ? rule.users.length : rule.required;
 
     if (rule.autoAdd && reviewers.notRequested.length) {
         log.faint(`Adding reviewers: ${joinWithFinalConjunction(reviewers.notRequested, 'and')}`);

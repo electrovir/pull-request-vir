@@ -7,7 +7,7 @@ type docs: https://electrovir.github.io/pull-request-vir
 ## usage
 
 1.  Install this package into whatever repo you're planning to use it.
-    -   `npm i -D pull-request-vir`
+    - `npm i -D pull-request-vir`
 2.  Create a config file somewhere in the repo (not within source code).
 
     1. The config file can be named anything but must be JavaScript or TypeScript.
@@ -30,7 +30,9 @@ type docs: https://electrovir.github.io/pull-request-vir
                         'ghost',
                     ],
                     required: 2,
-                    requiredIf: [/^src\/backend\//],
+                    codeOwners: {
+                        paths: [/^src\/backend\//],
+                    },
                 },
             ],
         };
