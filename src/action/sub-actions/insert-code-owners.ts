@@ -6,6 +6,10 @@ const codeOwnersComments = {
     end: '<!-- code owners end -->',
 };
 
+const codeOwnersCommentsRegExp = new RegExp(
+    `${codeOwnersComments.start}[^<]*${codeOwnersComments.end}`,
+);
+
 export async function insertCodeOwners({
     config,
     octokit,
@@ -35,12 +39,30 @@ export async function insertCodeOwners({
     if (!config.insertCodeOwners) {
         log.success('Skipping code owners insertion.');
         return;
-    } else if (!codeOwners.length) {
+    }
+
+    const newBody = determineNewPullRequestBody(codeOwners, pullRequest.body || '');
+
+    if (!newBody) {
         log.success('No code owners to insert.');
         return;
     }
 
-    const codeOwnersInsertionIndex = findCodeOwnersInsertionIndex(pullRequest.body || '');
+    await octokit.rest.pulls.update({
+        owner: repo.owner,
+        pull_number: pullRequest.number,
+        repo: repo.repo,
+        body: newBody,
+    });
+
+    log.success('Code owners inserted.');
+}
+
+function determineNewPullRequestBody(
+    codeOwners: ReadonlyArray<string>,
+    body: string,
+): string | undefined {
+    const codeOwnersInsertionIndex = findCodeOwnersInsertionIndex(body || '');
 
     const codeOwnersString = [
         codeOwnersComments.start,
@@ -54,29 +76,28 @@ export async function insertCodeOwners({
         codeOwnersComments.end,
     ].join('');
 
-    const newBody = pullRequest.body
-        ? pullRequest.body.includes(codeOwnersComments.start)
-            ? pullRequest.body
-                  .replace(codeOwnersComments.end, '')
-                  .replace(codeOwnersComments.start, codeOwnersString)
-            : pullRequest.body.slice(0, codeOwnersInsertionIndex) +
-              codeOwnersString +
-              pullRequest.body.slice(codeOwnersInsertionIndex)
-        : codeOwnersString;
-
-    await octokit.rest.pulls.update({
-        owner: repo.owner,
-        pull_number: pullRequest.number,
-        repo: repo.repo,
-        body: newBody,
-    });
-
-    log.success('Code owners inserted.');
+    if (!codeOwners.length) {
+        if (body.includes(codeOwnersComments.start)) {
+            return body.replace(codeOwnersCommentsRegExp, '');
+        } else {
+            return undefined;
+        }
+    } else if (body.includes(codeOwnersComments.start)) {
+        return body.replace(codeOwnersCommentsRegExp, codeOwnersString);
+    } else if (codeOwnersInsertionIndex == undefined) {
+        return body + codeOwnersString;
+    } else {
+        return (
+            body.slice(0, codeOwnersInsertionIndex) +
+            codeOwnersString +
+            body.slice(codeOwnersInsertionIndex)
+        );
+    }
 }
 
-function findCodeOwnersInsertionIndex(body: string): number {
+function findCodeOwnersInsertionIndex(body: string): number | undefined {
     if (!body) {
-        return 0;
+        return undefined;
     }
 
     const [primaryReviewerMatch] = safeMatch(body, /primary reviewers?\*?\*?:/i);
@@ -91,6 +112,6 @@ function findCodeOwnersInsertionIndex(body: string): number {
             return nextLineIndex + 1;
         }
     } else {
-        return body.length;
+        return undefined;
     }
 }
