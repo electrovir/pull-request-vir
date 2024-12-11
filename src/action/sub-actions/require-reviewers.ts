@@ -62,7 +62,7 @@ export async function requireReviewers({
                 octokit,
                 pullRequest,
                 repo,
-                codeOwners,
+                codeOwners: Object.keys(codeOwners),
                 ruleIndex: index,
             });
             if (!failure) {

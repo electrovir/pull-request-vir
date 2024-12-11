@@ -43,7 +43,7 @@ describe(requireReviewers.name, () => {
                 repo: 'test',
             },
             reviews,
-            codeOwners: [],
+            codeOwners: {},
         });
     }
 

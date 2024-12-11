@@ -1,31 +1,36 @@
 import {check} from '@augment-vir/assert';
+import {getOrSet} from '@augment-vir/common';
 import {type ReviewRule} from '../config/config.js';
 
-/**
- * @returns An array of usernames corresponding to the users that match code owner rules for this
- *   pull request.
- */
+export type CodeOwners = {
+    [Username in string]: string[] /** A list of matched code owned paths. */;
+};
+
 export function determineCodeOwners(
     rules: ReadonlyArray<Readonly<ReviewRule>>,
     changedFilePaths: ReadonlyArray<string>,
-): string[] {
-    const matchedRules = rules.filter((rule) => {
+): CodeOwners {
+    const codeOwners: CodeOwners = {};
+
+    rules.forEach((rule) => {
         const ownership = rule.codeOwns;
         if (!ownership) {
-            return false;
+            return;
         }
 
-        const matches = changedFilePaths.some((filePath) => {
-            return matchesCodeOwns(filePath, ownership.paths || []);
-        });
-        const matchesNot = changedFilePaths.some((filePath) => {
-            return matchesCodeOwns(filePath, ownership.notPaths || []);
-        });
+        changedFilePaths.forEach((filePath) => {
+            const match = matchesCodeOwns(filePath, ownership.paths || []);
+            const antiMatch = matchesCodeOwns(filePath, ownership.notPaths || []);
 
-        return !matchesNot && matches;
+            if (!antiMatch && match) {
+                (rule.users || []).forEach((user) => {
+                    getOrSet(codeOwners, user, () => []).push(filePath);
+                });
+            }
+        });
     });
 
-    return matchedRules.flatMap((rule) => rule.users || []);
+    return codeOwners;
 }
 
 function matchesCodeOwns(filePath: string, ownership: ReadonlyArray<string | RegExp>): boolean {

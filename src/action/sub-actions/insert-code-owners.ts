@@ -41,7 +41,7 @@ export async function insertCodeOwners({
         return;
     }
 
-    const newBody = determineNewPullRequestBody(codeOwners, pullRequest.body || '');
+    const newBody = determineNewPullRequestBody(Object.keys(codeOwners), pullRequest.body || '');
 
     if (!newBody) {
         log.success('No code owners to insert.');

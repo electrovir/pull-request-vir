@@ -1,6 +1,7 @@
 import {type SimpleGit} from 'simple-git';
 import {type PullRequestVirConfig} from '../config/config.js';
 import {GithubPullRequest, GithubRepo, Octokit} from '../data/github.js';
+import type {CodeOwners} from './code-owners.js';
 
 export type SubActionParams = Readonly<{
     config: Readonly<PullRequestVirConfig>;
@@ -10,7 +11,7 @@ export type SubActionParams = Readonly<{
     repo: Readonly<GithubRepo>;
     repoDir: string;
     reviews: Readonly<PullRequestReviews>;
-    codeOwners: ReadonlyArray<string>;
+    codeOwners: Readonly<CodeOwners>;
     changedFilePaths: ReadonlyArray<string>;
 }>;
 
