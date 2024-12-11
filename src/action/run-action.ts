@@ -72,12 +72,23 @@ async function runAction() {
         logJson(reviews, 'faint');
         const git = simpleGit(repoDir);
 
+        const mergeBase = (
+            await git.raw([
+                'merge-base',
+                'HEAD',
+                pullRequest.base.sha,
+            ])
+        ).trim();
+
+        log.faint(`merge base: ${mergeBase}`);
+
         const changedFilePaths = (
             await git.diff([
                 '--name-only',
                 // cspell:ignore ACMR
                 '--diff-filter=ACMR',
-                pullRequest.base.sha,
+                pullRequest.head.sha,
+                mergeBase,
             ])
         )
             .trim()
