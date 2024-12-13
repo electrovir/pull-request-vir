@@ -75,7 +75,7 @@ async function runAction() {
         const mergeBase = (
             await git.raw([
                 'merge-base',
-                'HEAD',
+                pullRequest.head.sha,
                 pullRequest.base.sha,
             ])
         ).trim();
@@ -87,8 +87,8 @@ async function runAction() {
                 '--name-only',
                 // cspell:ignore ACMR
                 '--diff-filter=ACMR',
-                pullRequest.head.sha,
                 mergeBase,
+                pullRequest.head.sha,
             ])
         )
             .trim()
