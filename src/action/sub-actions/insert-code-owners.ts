@@ -31,6 +31,9 @@ export async function insertCodeOwners({
             pullRequest: {
                 number: true;
                 body: true;
+                user: {
+                    login: true;
+                };
             };
             codeOwners: true;
         }
@@ -41,7 +44,10 @@ export async function insertCodeOwners({
         return;
     }
 
-    const newBody = determineNewPullRequestBody(Object.keys(codeOwners), pullRequest.body || '');
+    const newBody = determineNewPullRequestBody(
+        Object.keys(codeOwners).filter((codeOwner) => codeOwner !== pullRequest.user?.login),
+        pullRequest.body || '',
+    );
 
     if (!newBody) {
         log.success('No code owners to insert.');
