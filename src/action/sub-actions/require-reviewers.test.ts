@@ -1,7 +1,6 @@
 import {describe, itCases} from '@augment-vir/test';
-import type {PullRequestVirConfig} from '../../config/config.js';
+import type {PullRequestReviews, PullRequestVirConfig} from '../../config/config.js';
 import {SilentError} from '../../silent.error.js';
-import {PullRequestReviews} from '../sub-action-params.js';
 import {requireReviewers} from './require-reviewers.js';
 
 describe(requireReviewers.name, () => {

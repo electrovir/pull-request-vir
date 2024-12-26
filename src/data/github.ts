@@ -1,37 +1,44 @@
 import type {getOctokit} from '@actions/github';
-import type {ArrayElement} from '@augment-vir/common';
 import type {components} from '@octokit/openapi-types';
 import {defineShape, enumShape, or} from 'object-shape-tester';
 
-export type GithubActionsEventTriggerName = ArrayElement<
-    NonNullable<
-        /**
-         * These types aren't individually exported anywhere so we have to extract them from this
-         * location.
-         */
-        components['schemas']['webhook-check-suite-completed']['check_suite']['app']['events']
-    >
->;
-
+/**
+ * A pull request
+ *
+ * @category Shape
+ */
 export type GithubPullRequest = components['schemas']['pull-request-simple'];
 
+/**
+ * An individual GitHub user.
+ *
+ * @category Shape
+ */
 export type GithubUser = components['schemas']['simple-user'];
 
-export enum ReviewStatus {
-    ChangesRequested = 'CHANGES_REQUESTED',
-    Approved = 'APPROVED',
-    Commented = 'COMMENTED',
-    Dismissed = 'DISMISSED',
-}
-
+/**
+ * An instance of GitHub's Octokit API. Can be used to send requests to GitHub.
+ *
+ * @category Shape
+ */
 export type Octokit = ReturnType<typeof getOctokit>;
 
+/**
+ * A GitHub repo's name and owner.
+ *
+ * @category Shape
+ */
 export type GithubRepo = {
     owner: string;
     /** The repo name. */
     repo: string;
 };
 
+/**
+ * All the possible review statuses that a pull request review can have in an enum form.
+ *
+ * @category Shape
+ */
 export enum GithubGraphqlReviewState {
     Approved = 'APPROVED',
     Pending = 'PENDING',
@@ -40,7 +47,12 @@ export enum GithubGraphqlReviewState {
     Dismissed = 'DISMISSED',
 }
 
-const githubUserSearchResponseShape = defineShape(
+/**
+ * Shape definition for an individual user's search result.
+ *
+ * @category Shape
+ */
+export const githubUserSearchResponseShape = defineShape(
     {
         login: '',
         avatarUrl: or(undefined, ''),
@@ -50,6 +62,11 @@ const githubUserSearchResponseShape = defineShape(
     true,
 );
 
+/**
+ * Shape definition for an individual pull request review.
+ *
+ * @category Shape
+ */
 export const githubReviewShape = defineShape(
     {
         state: enumShape(GithubGraphqlReviewState),
@@ -58,4 +75,10 @@ export const githubReviewShape = defineShape(
     },
     true,
 );
+
+/**
+ * A review posted to a GitHub pull request.
+ *
+ * @category Shape
+ */
 export type GithubReview = typeof githubReviewShape.runtimeType;

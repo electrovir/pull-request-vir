@@ -1,10 +1,6 @@
 import {check} from '@augment-vir/assert';
 import {getOrSet} from '@augment-vir/common';
-import {type ReviewRule} from '../config/config.js';
-
-export type CodeOwners = {
-    [Username in string]: string[] /** A list of matched code owned paths. */;
-};
+import {type CodeOwners, type ReviewRule} from '../config/config.js';
 
 export function determineCodeOwners(
     rules: ReadonlyArray<Readonly<ReviewRule>>,

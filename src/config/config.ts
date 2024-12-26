@@ -1,6 +1,42 @@
 import {MaybePromise, type AnyFunction, type TypedFunction} from '@augment-vir/common';
 import {and, classShape, defineShape, exact, indexedKeys, optional, or} from 'object-shape-tester';
-import {SubActionParams} from '../action/sub-action-params.js';
+import {SimpleGit} from 'simple-git';
+import {GithubPullRequest, GithubRepo, Octokit} from '../data/github.js';
+
+/**
+ * A collection of code owners for an individual pull request.
+ *
+ * @category Shape
+ */
+export type CodeOwners = {
+    [Username in string]: string[] /** A list of matched code owned paths. */;
+};
+
+/**
+ * Params for each script executed internally and defined externally in the user's config.
+ *
+ * @category Shape
+ */
+export type ScriptParams = Readonly<{
+    config: Readonly<PullRequestVirConfig>;
+    octokit: Readonly<Octokit>;
+    git: Readonly<SimpleGit>;
+    pullRequest: Readonly<GithubPullRequest>;
+    repo: Readonly<GithubRepo>;
+    repoDir: string;
+    reviews: Readonly<PullRequestReviews>;
+    codeOwners: Readonly<CodeOwners>;
+    changedFilePaths: ReadonlyArray<string>;
+}>;
+
+/**
+ * A collection of pull request reviews.
+ *
+ * @category Shape
+ */
+export type PullRequestReviews = {
+    [username in string]: boolean /** Whether the user has approved the pull request or not. */;
+};
 
 /**
  * The sanitized shape for an individual rule without user overrides.
@@ -147,7 +183,7 @@ export const pullRequestVirConfigShape = defineShape({
     insertCodeOwners: optional(true),
     /** Arbitrary scripts that will be executed in order on a pull request. */
     scripts: optional([
-        (() => {}) as AnyFunction as TypedFunction<SubActionParams,
+        (() => {}) as AnyFunction as TypedFunction<ScriptParams,
             Promise<void>>,
     ]),
 });

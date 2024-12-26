@@ -1,8 +1,8 @@
 import {joinWithFinalConjunction, log} from '@augment-vir/common';
 import {parsePrimaryReviewers} from '@review-vir/common';
-import {SubActionParams} from '../sub-action-params.js';
+import {ScriptParams} from '../../config/config.js';
 
-export function checkPrimaryReviewers({config, reviews, pullRequest}: SubActionParams) {
+export function checkPrimaryReviewers({config, reviews, pullRequest}: ScriptParams) {
     if (!config.checkPrimaryReviewer) {
         log.success('primary reviewer is disabled, skipping check.');
         return;

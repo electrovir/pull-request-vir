@@ -9,6 +9,7 @@ import {
     type MaybePromise,
 } from '@augment-vir/common';
 import simpleGit from 'simple-git';
+import {ScriptParams} from '../config/config.js';
 import {GithubPullRequest} from '../data/github.js';
 import {getCompleteReviewStatus} from '../data/reviews.js';
 import {fetchGithubPullRequest} from '../services/fetch-github-pull-request.js';
@@ -18,7 +19,6 @@ import {extractEnvVars} from '../util/extract-env-vars.js';
 import {logJson} from '../util/log-json.js';
 import {determineCodeOwners} from './code-owners.js';
 import {loadConfig} from './load-config.js';
-import {SubActionParams} from './sub-action-params.js';
 import {autoAssignAuthor} from './sub-actions/auto-assign-author.js';
 import {blockNoMerge} from './sub-actions/block-no-merge.js';
 import {checkPrimaryReviewers} from './sub-actions/check-primary-reviewers.js';
@@ -30,7 +30,7 @@ import {waitForParent} from './sub-actions/wait-for-parent-pull-request.js';
  * These are in order of least likely to fail to more likely to fail, so we can run as many of them
  * as possible before they fail.
  */
-const subActions: ReadonlyArray<(params: SubActionParams) => MaybePromise<void>> = [
+const subActions: ReadonlyArray<(params: ScriptParams) => MaybePromise<void>> = [
     insertCodeOwners,
     autoAssignAuthor,
     blockNoMerge,
@@ -103,7 +103,7 @@ async function runAction() {
         log.faint('code owners');
         logJson(codeOwners, 'faint');
 
-        const subActionParams: SubActionParams = {
+        const subActionParams: ScriptParams = {
             config,
             octokit,
             pullRequest,

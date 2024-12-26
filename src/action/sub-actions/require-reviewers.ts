@@ -6,11 +6,11 @@ import {
     wait,
     type SelectFrom,
 } from '@augment-vir/common';
-import type {ReviewRule} from '../../config/config.js';
+import type {PullRequestReviews, ReviewRule} from '../../config/config.js';
+import {ScriptParams} from '../../config/config.js';
 import {GithubPullRequest, GithubRepo, Octokit} from '../../data/github.js';
 import {SilentError} from '../../silent.error.js';
 import {logJson} from '../../util/log-json.js';
-import {PullRequestReviews, SubActionParams} from '../sub-action-params.js';
 
 export async function requireReviewers({
     config,
@@ -21,7 +21,7 @@ export async function requireReviewers({
     codeOwners,
 }: Readonly<
     SelectFrom<
-        SubActionParams,
+        ScriptParams,
         {
             config: {
                 reviewRules: true;

@@ -1,5 +1,5 @@
 import {type SelectFrom} from '@augment-vir/common';
-import {PullRequestReviews, SubActionParams} from '../action/sub-action-params.js';
+import type {PullRequestReviews, ScriptParams} from '../config/config.js';
 import {
     GithubGraphqlReviewState,
     GithubPullRequest,
@@ -46,7 +46,7 @@ async function fetchSubmittedReviews({
     repo,
     pullRequest,
 }: SelectFrom<
-    SubActionParams,
+    ScriptParams,
     {
         octokit: {
             graphql: true;

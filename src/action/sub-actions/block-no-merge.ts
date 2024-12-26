@@ -1,10 +1,10 @@
 import {joinWithFinalConjunction, log} from '@augment-vir/common';
+import {ScriptParams} from '../../config/config.js';
 import {SilentError} from '../../silent.error.js';
 import {logJson} from '../../util/log-json.js';
 import {parseGitPatch} from '../../util/parse-git-patch.js';
-import {SubActionParams} from '../sub-action-params.js';
 
-export async function blockNoMerge({config, octokit, pullRequest, repo}: SubActionParams) {
+export async function blockNoMerge({config, octokit, pullRequest, repo}: ScriptParams) {
     if (!config.blockNoMerge) {
         log.success('"no merge" phrases are disabled, skipping check.');
         return;

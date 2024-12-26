@@ -1,10 +1,10 @@
 import {log} from '@augment-vir/common';
+import {ScriptParams} from '../../config/config.js';
 import {GithubPullRequest} from '../../data/github.js';
 import {fetchGithubPullRequest} from '../../services/fetch-github-pull-request.js';
 import {SilentError} from '../../silent.error.js';
-import {SubActionParams} from '../sub-action-params.js';
 
-export async function waitForParent({octokit, pullRequest, config}: Readonly<SubActionParams>) {
+export async function waitForParent({octokit, pullRequest, config}: Readonly<ScriptParams>) {
     if (!config.waitForParentPullRequest) {
         log.success('waitForParentPullRequest config is false, skipping parent PR check.');
         return;

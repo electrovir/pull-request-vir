@@ -1,5 +1,5 @@
 import {log, safeMatch, type SelectFrom} from '@augment-vir/common';
-import {SubActionParams} from '../sub-action-params.js';
+import {ScriptParams} from '../../config/config.js';
 
 const codeOwnersComments = {
     start: '<!-- code owners start -->',
@@ -18,7 +18,7 @@ export async function insertCodeOwners({
     repo,
 }: Readonly<
     SelectFrom<
-        SubActionParams,
+        ScriptParams,
         {
             repo: {
                 owner: true;
