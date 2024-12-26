@@ -1,6 +1,7 @@
 import {check} from '@augment-vir/assert';
 import {
     awaitedBlockingMap,
+    awaitedForEach,
     ensureError,
     extractErrorMessage,
     log,
@@ -125,6 +126,12 @@ async function runAction() {
                 }
             })
         ).filter(check.isTruthy);
+
+        if (config.scripts?.length) {
+            await awaitedForEach(config.scripts, async (script) => {
+                await script(subActionParams);
+            });
+        }
 
         if (errors.length) {
             throw new SilentError();

@@ -1,5 +1,6 @@
-import {MaybePromise} from '@augment-vir/common';
+import {MaybePromise, type AnyFunction, type TypedFunction} from '@augment-vir/common';
 import {and, classShape, defineShape, exact, indexedKeys, optional, or} from 'object-shape-tester';
+import {SubActionParams} from '../action/sub-action-params.js';
 
 /**
  * The sanitized shape for an individual rule without user overrides.
@@ -144,6 +145,11 @@ export const pullRequestVirConfigShape = defineShape({
      * @default true
      */
     insertCodeOwners: optional(true),
+    /** Arbitrary scripts that will be executed in order on a pull request. */
+    scripts: optional([
+        (() => {}) as AnyFunction as TypedFunction<SubActionParams,
+            Promise<void>>,
+    ]),
 });
 
 /**
