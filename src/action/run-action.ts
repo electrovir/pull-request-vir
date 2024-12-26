@@ -128,7 +128,9 @@ async function runAction() {
         ).filter(check.isTruthy);
 
         if (config.scripts?.length) {
+            log.faint('Running custom user scripts...');
             await awaitedForEach(config.scripts, async (script) => {
+                log.faint(`Running ${script.name || 'anonymous'} script...`);
                 await script(subActionParams);
             });
         }

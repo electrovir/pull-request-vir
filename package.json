@@ -1,6 +1,6 @@
 {
     "name": "pull-request-vir",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "description": "GitHub Action for pull requests",
     "keywords": [
         "github",
@@ -51,7 +51,7 @@
         "@octokit/core": "^6.1.2",
         "@octokit/openapi-types": "^22.2.0",
         "@octokit/rest": "^21.0.2",
-        "@review-vir/common": "^2.0.0",
+        "@review-vir/common": "^3.0.0",
         "date-vir": "^7.1.1",
         "object-shape-tester": "^4.0.0",
         "simple-git": "^3.27.0",

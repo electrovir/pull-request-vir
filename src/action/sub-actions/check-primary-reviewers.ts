@@ -1,5 +1,5 @@
 import {joinWithFinalConjunction, log} from '@augment-vir/common';
-import {parsePrimaryReviewers} from '@review-vir/common';
+import {parseDescriptionUsers} from '@review-vir/common';
 import {ScriptParams} from '../../config/config.js';
 
 export function checkPrimaryReviewers({config, reviews, pullRequest}: ScriptParams) {
@@ -8,7 +8,10 @@ export function checkPrimaryReviewers({config, reviews, pullRequest}: ScriptPara
         return;
     }
 
-    const primaryReviewers = parsePrimaryReviewers({bodyText: pullRequest.body || ''});
+    const primaryReviewers = parseDescriptionUsers({
+        triggerText: 'primary reviewer',
+        bodyText: pullRequest.body || '',
+    });
 
     if (!primaryReviewers.length) {
         throw new Error('No primary reviewers detected.');
