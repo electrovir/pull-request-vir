@@ -1,5 +1,5 @@
 import {describe, it} from '@augment-vir/test';
-import {Config, PullRequestVirConfig, ReviewRule} from './config.js';
+import {type Config, type PullRequestVirConfig, type ReviewRule} from './config.js';
 
 describe('PullRequestVirConfig', () => {
     it('allows an empty object', () => {

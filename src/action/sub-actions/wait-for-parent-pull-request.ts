@@ -1,6 +1,6 @@
 import {log} from '@augment-vir/common';
-import {ScriptParams} from '../../config/config.js';
-import {GithubPullRequest} from '../../data/github.js';
+import {type ScriptParams} from '../../config/config.js';
+import {type GithubPullRequest} from '../../data/github.js';
 import {fetchGithubPullRequest} from '../../services/fetch-github-pull-request.js';
 import {SilentError} from '../../silent.error.js';
 

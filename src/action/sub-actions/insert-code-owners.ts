@@ -1,5 +1,5 @@
 import {log, safeMatch, type SelectFrom} from '@augment-vir/common';
-import {ScriptParams} from '../../config/config.js';
+import {type ScriptParams} from '../../config/config.js';
 
 const codeOwnersComments = {
     start: '<!-- code owners start -->',

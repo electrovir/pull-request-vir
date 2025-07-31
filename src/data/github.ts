@@ -1,5 +1,5 @@
-import type {getOctokit} from '@actions/github';
-import type {components} from '@octokit/openapi-types';
+import {type getOctokit} from '@actions/github';
+import {type components} from '@octokit/openapi-types';
 import {defineShape, enumShape, or} from 'object-shape-tester';
 
 /**

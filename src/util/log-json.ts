@@ -1,4 +1,4 @@
-import {AnyObject, log, logColors, type LogColorKey} from '@augment-vir/common';
+import {log, logColors, type AnyObject, type LogColorKey} from '@augment-vir/common';
 
 /**
  * Log an object as JSON that maintains its color through each line to fit GitHub Actions logs.

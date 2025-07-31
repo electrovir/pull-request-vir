@@ -9,8 +9,8 @@ import {
     type MaybePromise,
 } from '@augment-vir/common';
 import simpleGit from 'simple-git';
-import {ScriptParams} from '../config/config.js';
-import {GithubPullRequest} from '../data/github.js';
+import {type ScriptParams} from '../config/config.js';
+import {type GithubPullRequest} from '../data/github.js';
 import {getCompleteReviewStatus} from '../data/reviews.js';
 import {fetchGithubPullRequest} from '../services/fetch-github-pull-request.js';
 import {SilentError} from '../silent.error.js';

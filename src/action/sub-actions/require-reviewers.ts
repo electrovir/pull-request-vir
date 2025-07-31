@@ -6,9 +6,8 @@ import {
     wait,
     type SelectFrom,
 } from '@augment-vir/common';
-import type {PullRequestReviews, ReviewRule} from '../../config/config.js';
-import {ScriptParams} from '../../config/config.js';
-import {GithubPullRequest, GithubRepo, Octokit} from '../../data/github.js';
+import {type PullRequestReviews, type ReviewRule, type ScriptParams} from '../../config/config.js';
+import {type GithubPullRequest, type GithubRepo, type Octokit} from '../../data/github.js';
 import {SilentError} from '../../silent.error.js';
 import {logJson} from '../../util/log-json.js';
 

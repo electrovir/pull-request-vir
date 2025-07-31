@@ -1,6 +1,5 @@
 import {assert} from '@augment-vir/assert';
-import {it} from '@augment-vir/test';
-import {describe} from 'node:test';
+import {describe, it} from '@augment-vir/test';
 import {includesNoMergePhrase} from './block-no-merge.js';
 
 describe(includesNoMergePhrase.name, () => {

@@ -1,7 +1,7 @@
-import {MaybePromise, type AnyFunction, type TypedFunction} from '@augment-vir/common';
+import {type AnyFunction, type MaybePromise, type TypedFunction} from '@augment-vir/common';
 import {and, classShape, defineShape, exact, indexedKeys, optional, or} from 'object-shape-tester';
-import {SimpleGit} from 'simple-git';
-import {GithubPullRequest, GithubRepo, Octokit} from '../data/github.js';
+import {type SimpleGit} from 'simple-git';
+import {type GithubPullRequest, type GithubRepo, type Octokit} from '../data/github.js';
 
 /**
  * A collection of code owners for an individual pull request.
@@ -202,7 +202,7 @@ export type PullRequestVirConfig = typeof pullRequestVirConfigShape.runtimeType;
  * @example
  *
  * ```ts
- * import type {Config} from 'pull-request-vir';
+ * import {type Config} from 'pull-request-vir';
  *
  * export const config: Config = {
  *     assignToAuthor: true,

@@ -1,5 +1,5 @@
 import {log} from '@augment-vir/common';
-import {ScriptParams} from '../../config/config.js';
+import {type ScriptParams} from '../../config/config.js';
 
 export async function autoAssignAuthor({config, octokit, pullRequest, repo}: ScriptParams) {
     if (!config.assignToAuthor) {

@@ -1,5 +1,5 @@
 import {describe, itCases} from '@augment-vir/test';
-import type {PullRequestReviews, PullRequestVirConfig} from '../../config/config.js';
+import {type PullRequestReviews, type PullRequestVirConfig} from '../../config/config.js';
 import {SilentError} from '../../silent.error.js';
 import {requireReviewers} from './require-reviewers.js';
 

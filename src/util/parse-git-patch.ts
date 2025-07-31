@@ -67,7 +67,9 @@ export function parseGitPatch(patch: string) {
 
     const gitPatchMetaInfo = splitMetaInfo(patch, lines);
 
-    if (!gitPatchMetaInfo) return null;
+    if (!gitPatchMetaInfo) {
+        return null;
+    }
 
     const parsedPatch = {
         ...gitPatchMetaInfo,
@@ -77,11 +79,15 @@ export function parseGitPatch(patch: string) {
     splitIntoParts(lines, 'diff --git').forEach((diff) => {
         const fileNameLine = diff.shift();
 
-        if (!fileNameLine) return;
+        if (!fileNameLine) {
+            return;
+        }
 
         const match3 = fileNameLine.match(fileNameRegex);
 
-        if (!match3) return;
+        if (!match3) {
+            return;
+        }
 
         const [
             ,
@@ -90,7 +96,9 @@ export function parseGitPatch(patch: string) {
         ] = match3;
         const metaLine = diff.shift();
 
-        if (!metaLine) return;
+        if (!metaLine) {
+            return;
+        }
 
         const fileData: ParsedPatchFileDataType = {
             added: false,
@@ -115,11 +123,15 @@ export function parseGitPatch(patch: string) {
         splitIntoParts(diff, '@@ ').forEach((lines) => {
             const fileLinesLine = lines.shift();
 
-            if (!fileLinesLine) return;
+            if (!fileLinesLine) {
+                return;
+            }
 
             const match4 = fileLinesLine.match(fileLinesRegex);
 
-            if (!match4) return;
+            if (!match4) {
+                return;
+            }
 
             const [
                 ,
@@ -169,11 +181,15 @@ function splitMetaInfo(patch: string, lines: string[]) {
 
     const hashLine = lines.shift();
 
-    if (!hashLine) return null;
+    if (!hashLine) {
+        return null;
+    }
 
     const match1 = hashLine.match(hashRegex);
 
-    if (!match1) return null;
+    if (!match1) {
+        return null;
+    }
 
     const [
         ,
@@ -182,11 +198,15 @@ function splitMetaInfo(patch: string, lines: string[]) {
 
     const authorLine = lines.shift();
 
-    if (!authorLine) return null;
+    if (!authorLine) {
+        return null;
+    }
 
     const match2 = authorLine.match(authorRegex);
 
-    if (!match2) return null;
+    if (!match2) {
+        return null;
+    }
 
     const [
         ,
@@ -197,7 +217,9 @@ function splitMetaInfo(patch: string, lines: string[]) {
 
     const dateLine = lines.shift();
 
-    if (!dateLine) return null;
+    if (!dateLine) {
+        return null;
+    }
 
     const [
         ,
@@ -206,7 +228,9 @@ function splitMetaInfo(patch: string, lines: string[]) {
 
     const messageLine = lines.shift();
 
-    if (!messageLine) return null;
+    if (!messageLine) {
+        return null;
+    }
 
     const [
         ,

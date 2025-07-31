@@ -3,7 +3,7 @@ import {getOctokit, context as githubContext} from '@actions/github';
 import {log} from '@augment-vir/common';
 import {existsSync} from 'node:fs';
 import {basename} from 'node:path';
-import {GithubRepo, Octokit} from '../data/github.js';
+import {type GithubRepo, type Octokit} from '../data/github.js';
 
 export function extractEnvVars(): {
     repoDir: string;

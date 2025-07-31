@@ -1,12 +1,12 @@
 import {type SelectFrom} from '@augment-vir/common';
-import type {PullRequestReviews, ScriptParams} from '../config/config.js';
+import {type PullRequestReviews, type ScriptParams} from '../config/config.js';
 import {
     GithubGraphqlReviewState,
-    GithubPullRequest,
-    GithubRepo,
-    GithubReview,
-    GithubUser,
-    Octokit,
+    type GithubPullRequest,
+    type GithubRepo,
+    type GithubReview,
+    type GithubUser,
+    type Octokit,
 } from './github.js';
 
 export async function getCompleteReviewStatus({

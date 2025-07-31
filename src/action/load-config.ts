@@ -14,8 +14,8 @@ import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {assertValidShape} from 'object-shape-tester';
 import {
-    Config,
     pullRequestVirConfigShape,
+    type Config,
     type PullRequestVirConfig,
     type ReviewRule,
     type ReviewRuleWithoutOverrides,

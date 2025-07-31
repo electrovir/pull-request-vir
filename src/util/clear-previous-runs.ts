@@ -1,5 +1,5 @@
 import {awaitedForEach, log} from '@augment-vir/common';
-import {GithubRepo, Octokit} from '../data/github.js';
+import {type GithubRepo, type Octokit} from '../data/github.js';
 
 export async function clearPreviousRuns({
     branchName,
