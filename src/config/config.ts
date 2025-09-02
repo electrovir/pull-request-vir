@@ -1,5 +1,13 @@
 import {type AnyFunction, type MaybePromise, type TypedFunction} from '@augment-vir/common';
-import {and, classShape, defineShape, exact, indexedKeys, optional, or} from 'object-shape-tester';
+import {
+    classShape,
+    defineShape,
+    exactShape,
+    intersectShape,
+    optionalShape,
+    recordShape,
+    unionShape,
+} from 'object-shape-tester';
 import {type SimpleGit} from 'simple-git';
 import {type GithubPullRequest, type GithubRepo, type Octokit} from '../data/github.js';
 
@@ -50,31 +58,31 @@ export const reviewRuleWithoutOverridesShape = defineShape({
      * If this is set to false, then the users' reviews will only be required if they have been
      * manually added to the pull request.
      */
-    autoAdd: optional(true),
+    autoAdd: optionalShape(true),
     /**
      * A list of user names to consider as reviewers. No `@` or other prefix is necessary, just type
      * their username directly.
      *
      * @example Users: ['electrovir'],
      */
-    users: optional(['']),
+    users: optionalShape(['']),
     /**
      * How many of the listed users are required. Use `'all'` to require all of them or a number to
      * require that many of them.
      *
      * @default 'all'
      */
-    required: optional(or(exact('all'), 1)),
+    required: optionalShape(unionShape(exactShape('all'), 1)),
     /**
      * The rule will only be required if the pull request changed file paths matching any of the
      * given strings or regular expressions, ignoring the `notPaths` strings or regular
      * expressions.
      */
-    codeOwns: optional(
-        or(
+    codeOwns: optionalShape(
+        unionShape(
             {
-                paths: optional([or('', classShape(RegExp))]),
-                notPaths: optional([or('', classShape(RegExp))]),
+                paths: optionalShape([unionShape('', classShape(RegExp))]),
+                notPaths: optionalShape([unionShape('', classShape(RegExp))]),
             },
             undefined,
         ),
@@ -94,13 +102,12 @@ export type ReviewRuleWithoutOverrides = typeof reviewRuleWithoutOverridesShape.
  * @category Shape
  */
 export const reviewRuleShape = defineShape(
-    and(reviewRuleWithoutOverridesShape, {
-        userOverrides: optional(
-            or(
-                indexedKeys({
+    intersectShape(reviewRuleWithoutOverridesShape, {
+        userOverrides: optionalShape(
+            unionShape(
+                recordShape({
                     keys: '',
                     values: reviewRuleWithoutOverridesShape,
-                    required: true,
                 }),
                 undefined,
             ),
@@ -127,7 +134,7 @@ export const pullRequestVirConfigShape = defineShape({
      *
      * @default true
      */
-    assignToAuthor: optional(true),
+    assignToAuthor: optionalShape(true),
     /**
      * If this PR's base branch is itself used as the base branch in another PR, wait until that PR
      * is merged. This is used for chained PRs or stacked diff PRs to ensure the root of each chain
@@ -135,7 +142,7 @@ export const pullRequestVirConfigShape = defineShape({
      *
      * @default true
      */
-    waitForParentPullRequest: optional(true),
+    waitForParentPullRequest: optionalShape(true),
     /**
      * If the pull request has any "no merge" phrases (see below for a list of what those are) in
      * labels, commit messages, added lines, or the PR title, this GitHub Action will fail. If you
@@ -155,7 +162,7 @@ export const pullRequestVirConfigShape = defineShape({
      *
      * @default true
      */
-    blockNoMerge: optional(true),
+    blockNoMerge: optionalShape(true),
     /**
      * Require a primary reviewer to be specified in the Pull Request body and require that reviewer
      * to give an approval. Primary reviewers are detected with the string "primary reviewer" and
@@ -163,26 +170,26 @@ export const pullRequestVirConfigShape = defineShape({
      *
      * @default true
      */
-    checkPrimaryReviewer: optional(true),
+    checkPrimaryReviewer: optionalShape(true),
     /**
      * Ignore all checks on draft PRs.
      *
      * @default true
      */
-    ignoreDraft: optional(true),
+    ignoreDraft: optionalShape(true),
     /**
      * Reviewer configuration. All rules entry in the array is must match. Meaning, they're combined
      * with "and", &&, or intersection logic.
      */
-    reviewRules: optional([reviewRuleShape]),
+    reviewRules: optionalShape([reviewRuleShape]),
     /**
      * Inserts the usernames of code owners into a pull request's description.
      *
      * @default true
      */
-    insertCodeOwners: optional(true),
+    insertCodeOwners: optionalShape(true),
     /** Arbitrary scripts that will be executed in order on a pull request. */
-    scripts: optional([
+    scripts: optionalShape([
         (() => {}) as AnyFunction as TypedFunction<ScriptParams,
             Promise<void>>,
     ]),

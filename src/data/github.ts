@@ -1,6 +1,6 @@
 import {type getOctokit} from '@actions/github';
 import {type components} from '@octokit/openapi-types';
-import {defineShape, enumShape, or} from 'object-shape-tester';
+import {defineShape, enumShape, unionShape} from 'object-shape-tester';
 
 /**
  * A pull request
@@ -52,29 +52,23 @@ export enum GithubGraphqlReviewState {
  *
  * @category Shape
  */
-export const githubUserSearchResponseShape = defineShape(
-    {
-        login: '',
-        avatarUrl: or(undefined, ''),
-        teamAvatarUrl: or(undefined, ''),
-        url: '',
-    },
-    true,
-);
+export const githubUserSearchResponseShape = defineShape({
+    login: '',
+    avatarUrl: unionShape(undefined, ''),
+    teamAvatarUrl: unionShape(undefined, ''),
+    url: '',
+});
 
 /**
  * Shape definition for an individual pull request review.
  *
  * @category Shape
  */
-export const githubReviewShape = defineShape(
-    {
-        state: enumShape(GithubGraphqlReviewState),
-        author: githubUserSearchResponseShape,
-        submittedAt: '',
-    },
-    true,
-);
+export const githubReviewShape = defineShape({
+    state: enumShape(GithubGraphqlReviewState),
+    author: githubUserSearchResponseShape,
+    submittedAt: '',
+});
 
 /**
  * A review posted to a GitHub pull request.

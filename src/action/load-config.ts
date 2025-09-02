@@ -71,7 +71,7 @@ function sanitizeConfig(rawConfig: PullRequestVirConfig): PullRequestVirConfig {
     });
 
     return {
-        ...pullRequestVirConfigShape.defaultValue,
+        ...pullRequestVirConfigShape.default,
         ...sanitizedConfig,
         reviewRules: (sanitizedConfig.reviewRules || []).map((reviewRule): ReviewRule => {
             const sanitizedRuleWithoutOverrides: ReviewRuleWithoutOverrides = {

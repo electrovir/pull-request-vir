@@ -7,7 +7,6 @@ module.exports = {
     ],
     words: [
         ...baseConfig.words,
-        'openapi',
         'hérault',
         'nomerge',
         'notmerge',
