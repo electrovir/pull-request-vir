@@ -8,6 +8,8 @@ import {
     mapObject,
     mapObjectValues,
     mergeDefinedProperties,
+    omitObjectKeys,
+    removeDuplicates,
     wrapInTry,
 } from '@augment-vir/common';
 import {existsSync} from 'node:fs';
@@ -65,7 +67,7 @@ export async function loadConfig(repoDir: string): Promise<PullRequestVirConfig>
     return sanitizedConfig;
 }
 
-function sanitizeConfig(rawConfig: PullRequestVirConfig): PullRequestVirConfig {
+export function sanitizeConfig(rawConfig: PullRequestVirConfig): PullRequestVirConfig {
     const sanitizedConfig = filterObject(rawConfig, (key, value: unknown) => {
         return value != undefined;
     });
@@ -75,8 +77,8 @@ function sanitizeConfig(rawConfig: PullRequestVirConfig): PullRequestVirConfig {
         ...sanitizedConfig,
         reviewRules: (sanitizedConfig.reviewRules || []).map((reviewRule): ReviewRule => {
             const sanitizedRuleWithoutOverrides: ReviewRuleWithoutOverrides = {
-                ...reviewRule,
-                users: Array.from(new Set((reviewRule.users || []).filter(check.isTruthy))),
+                ...omitObjectKeys(reviewRule, ['userOverrides']),
+                users: removeDuplicates(reviewRule.users || []).filter(check.isTruthy),
                 codeOwns: reviewRule.codeOwns
                     ? mapObjectValues(reviewRule.codeOwns, (key, paths) => {
                           return paths.filter(
