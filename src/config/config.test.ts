@@ -1,5 +1,11 @@
 import {describe, it} from '@augment-vir/test';
-import {type Config, type PullRequestVirConfig, type ReviewRule} from './config.js';
+import {assertValidShape} from 'object-shape-tester';
+import {
+    pullRequestVirConfigShape,
+    type Config,
+    type PullRequestVirConfig,
+    type ReviewRule,
+} from './config.js';
 
 describe('PullRequestVirConfig', () => {
     it('allows an empty object', () => {
@@ -51,6 +57,64 @@ describe('ReviewRule', () => {
 });
 
 describe('Config', () => {
+    it('accepts a larger config', () => {
+        assertValidShape(
+            {
+                assignToAuthor: true,
+                blockNoMerge: true,
+                checkPrimaryReviewer: false,
+                ignoreDraft: true,
+                insertCodeOwners: true,
+                waitForParentPullRequest: true,
+                reviewRules: [
+                    {
+                        autoAdd: true,
+                        users: [
+                            'electrovir',
+                        ],
+                        required: 1,
+                        userOverrides: {
+                            electrovir: {
+                                required: 0,
+                            },
+                        },
+                    },
+                    {
+                        autoAdd: false,
+                        users: ['electrovir'],
+                    },
+                ],
+            } satisfies Config,
+            pullRequestVirConfigShape,
+        );
+
+        const value: Config = {
+            assignToAuthor: true,
+            blockNoMerge: true,
+            checkPrimaryReviewer: false,
+            ignoreDraft: true,
+            insertCodeOwners: true,
+            waitForParentPullRequest: true,
+            reviewRules: [
+                {
+                    autoAdd: true,
+                    users: [
+                        'electrovir',
+                    ],
+                    required: 1,
+                    userOverrides: {
+                        electrovir: {
+                            required: 0,
+                        },
+                    },
+                },
+                {
+                    autoAdd: false,
+                    users: ['electrovir'],
+                },
+            ],
+        };
+    });
     it('accepts an example config', () => {
         const config: Config = {
             assignToAuthor: true,

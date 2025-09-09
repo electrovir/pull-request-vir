@@ -79,13 +79,13 @@ export const reviewRuleWithoutOverridesShape = defineShape({
      * expressions.
      */
     codeOwns: optionalShape(
-        unionShape(
-            {
-                paths: optionalShape([unionShape('', classShape(RegExp))]),
-                notPaths: optionalShape([unionShape('', classShape(RegExp))]),
-            },
-            undefined,
-        ),
+        {
+            paths: optionalShape([unionShape('', classShape(RegExp))]),
+            notPaths: optionalShape([unionShape('', classShape(RegExp))]),
+        },
+        {
+            alsoUndefined: true,
+        },
     ),
 });
 
@@ -104,13 +104,13 @@ export type ReviewRuleWithoutOverrides = typeof reviewRuleWithoutOverridesShape.
 export const reviewRuleShape = defineShape(
     intersectShape(reviewRuleWithoutOverridesShape, {
         userOverrides: optionalShape(
-            unionShape(
-                recordShape({
-                    keys: '',
-                    values: reviewRuleWithoutOverridesShape,
-                }),
-                undefined,
-            ),
+            recordShape({
+                keys: '',
+                values: reviewRuleWithoutOverridesShape,
+            }),
+            {
+                alsoUndefined: true,
+            },
         ),
     }),
 );
