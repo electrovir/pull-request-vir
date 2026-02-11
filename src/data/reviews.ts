@@ -35,7 +35,7 @@ export async function getCompleteReviewStatus({
     );
 }
 
-export function parseReviews(
+function parseReviews(
     requestedReviewers: ReadonlyArray<Readonly<GithubUser>>,
     submittedReviews: ReadonlyArray<Readonly<GithubReview>>,
     latestCommitDate?: string,
