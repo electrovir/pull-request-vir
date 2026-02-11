@@ -14,5 +14,5 @@ outputs:
     status:
         description: 'The result of the checks'
 runs:
-    using: 'node20'
+    using: 'node24'
     main: 'src/action/action-entry-point.js'
