@@ -183,6 +183,15 @@ export const pullRequestVirConfigShape = defineShape({
      */
     reviewRules: optionalShape([reviewRuleShape]),
     /**
+     * Treat approvals as invalid if they were submitted before the latest commit on the pull
+     * request. This helps ensure reviewers have seen the latest code changes.
+     *
+     * Note: this will also invalidate reviews after a rebase, even if the code hasn't changed.
+     *
+     * @default false
+     */
+    requireFreshReviews: optionalShape(false),
+    /**
      * Inserts the usernames of code owners into a pull request's description.
      *
      * @default true

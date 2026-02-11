@@ -1,4 +1,4 @@
-import {type SelectFrom} from '@augment-vir/common';
+import {log, type SelectFrom} from '@augment-vir/common';
 import {type PullRequestReviews, type ScriptParams} from '../config/config.js';
 import {
     GithubGraphqlReviewState,
@@ -13,24 +13,45 @@ export async function getCompleteReviewStatus({
     pullRequest,
     octokit,
     repo,
+    requireFreshReviews,
 }: {
     pullRequest: Readonly<GithubPullRequest>;
     octokit: Readonly<Octokit>;
     repo: Readonly<GithubRepo>;
+    requireFreshReviews: boolean;
 }) {
-    const submittedReviews = await fetchSubmittedReviews({octokit, pullRequest, repo});
+    const {reviews: submittedReviews, latestCommitDate} = await fetchSubmittedReviews({
+        octokit,
+        pullRequest,
+        repo,
+    });
 
     const requestedReviewers = pullRequest.requested_reviewers || [];
 
-    return parseReviews(requestedReviewers, submittedReviews);
+    return parseReviews(
+        requestedReviewers,
+        submittedReviews,
+        requireFreshReviews ? latestCommitDate : undefined,
+    );
 }
 
-function parseReviews(
+export function parseReviews(
     requestedReviewers: ReadonlyArray<Readonly<GithubUser>>,
     submittedReviews: ReadonlyArray<Readonly<GithubReview>>,
+    latestCommitDate?: string,
 ): PullRequestReviews {
     const approvals = submittedReviews.reduce((accum, review) => {
-        accum[review.author.login] = review.state === GithubGraphqlReviewState.Approved;
+        const isApproved = review.state === GithubGraphqlReviewState.Approved;
+
+        if (isApproved && latestCommitDate && review.submittedAt < latestCommitDate) {
+            log.faint(
+                `Stale approval from '${review.author.login}': reviewed at ${review.submittedAt}, latest commit at ${latestCommitDate}`,
+            );
+            accum[review.author.login] = false;
+        } else {
+            accum[review.author.login] = isApproved;
+        }
+
         return accum;
     }, {} as PullRequestReviews);
 
@@ -59,7 +80,7 @@ async function fetchSubmittedReviews({
             number: true;
         };
     }
->): Promise<GithubReview[]> {
+>): Promise<{reviews: GithubReview[]; latestCommitDate: string}> {
     const results: any = await octokit.graphql(
         /* GraphQL */ `
             query ($owner: String!, $repo: String!, $pullNumber: Int!) {
@@ -76,6 +97,13 @@ async function fetchSubmittedReviews({
                                 state
                             }
                         }
+                        commits(last: 1) {
+                            nodes {
+                                commit {
+                                    committedDate
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -87,5 +115,8 @@ async function fetchSubmittedReviews({
         },
     );
 
-    return results.repository.pullRequest.latestOpinionatedReviews.nodes;
+    return {
+        reviews: results.repository.pullRequest.latestOpinionatedReviews.nodes,
+        latestCommitDate: results.repository.pullRequest.commits.nodes[0]?.commit.committedDate,
+    };
 }

@@ -68,7 +68,12 @@ async function runAction() {
             throw new Error('Aborting checks because Pull Request is a draft.');
         }
 
-        const reviews = await getCompleteReviewStatus({octokit, pullRequest, repo});
+        const reviews = await getCompleteReviewStatus({
+            octokit,
+            pullRequest,
+            repo,
+            requireFreshReviews: !!config.requireFreshReviews,
+        });
         log.faint('current approvals');
         logJson(reviews, 'faint');
         const git = simpleGit(repoDir);
