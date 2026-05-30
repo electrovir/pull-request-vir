@@ -28,7 +28,9 @@ import {logJson} from '../util/log-json.js';
 export async function loadConfig(repoDir: string): Promise<PullRequestVirConfig> {
     const configPath = join(
         repoDir,
-        getInput('config_file', {trimWhitespace: true}) || './configs/pull-request-vir.config.ts',
+        getInput('config_file', {
+            trimWhitespace: true,
+        }) || './configs/pull-request-vir.config.ts',
     );
 
     log.faint(`Loading config at '${configPath}'`);
@@ -44,7 +46,7 @@ export async function loadConfig(repoDir: string): Promise<PullRequestVirConfig>
         : {};
 
     if (rawConfigInput instanceof Error) {
-        throw ensureErrorAndPrependMessage(rawConfigInput, `Failed to import config`);
+        throw ensureErrorAndPrependMessage(rawConfigInput, 'Failed to import config');
     }
 
     const rawConfig =

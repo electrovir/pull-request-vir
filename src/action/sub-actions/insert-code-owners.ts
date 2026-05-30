@@ -8,7 +8,7 @@ const codeOwnersComments = {
 };
 
 const codeOwnersCommentsRegExp = new RegExp(
-    `${codeOwnersComments.start}[\\S\\s]*?${codeOwnersComments.end}`,
+    String.raw`${codeOwnersComments.start}[\S\s]*?${codeOwnersComments.end}`,
 );
 
 type DetermineNewPullRequestBodyParams = Readonly<{
@@ -171,7 +171,9 @@ function createCodeOwnerSection({fileLinks, username}: CodeOwnerEntry): string {
         '<summary>Owned files</summary>',
         '',
         ...fileLinks.map(({filePath, url}) => {
-            return `- [${escapeMarkdownLinkText({filePath})}](${url})`;
+            return `- [${escapeMarkdownLinkText({
+                filePath,
+            })}](${url})`;
         }),
         '',
         '</details>',

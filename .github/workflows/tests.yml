@@ -16,13 +16,11 @@ jobs:
             fail-fast: false
             matrix:
                 os: [macos-latest, ubuntu-latest, windows-latest]
-                node-version: [18.x, 20.x, 22.x]
         steps:
             - uses: actions/checkout@v4.1.7
-            - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v4.0.3
+            - uses: actions/setup-node@v4.0.3
               with:
-                  node-version: ${{ matrix.node-version }}
+                  node-version-file: '.nvmrc'
             # handle NPM / Node.js repeatedly bricking their npm setup on Windows
             # Note that this won't work if it uses --no-save
             - if: runner.os == 'Windows'

@@ -20,7 +20,9 @@ describe(requireReviewers.name, () => {
                         listFiles: (() => {
                             return {
                                 data: changedFiles.map((filename) => {
-                                    return {filename};
+                                    return {
+                                        filename,
+                                    };
                                 }),
                             };
                         }) as any,
@@ -51,7 +53,9 @@ describe(requireReviewers.name, () => {
             it: 'passes with no rules',
             inputs: [
                 [],
-                {a: true},
+                {
+                    a: true,
+                },
             ],
             throws: undefined,
         },

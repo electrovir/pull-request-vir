@@ -69,7 +69,7 @@ const expandedNoMergePhrases = baseNoMergePhrases.flatMap((phrase) => [
     phrase.replace(' ', ''),
 ]);
 
-const noMergeRegExp = new RegExp(`\\b(?:${expandedNoMergePhrases.join('|')})\\b`, 'i');
+const noMergeRegExp = new RegExp(String.raw`\b(?:${expandedNoMergePhrases.join('|')})\b`, 'i');
 
 export function includesNoMergePhrase(text: string): boolean {
     return !!text.match(noMergeRegExp);
