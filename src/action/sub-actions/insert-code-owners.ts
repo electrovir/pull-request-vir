@@ -1,5 +1,6 @@
-import {log, safeMatch, type SelectFrom} from '@augment-vir/common';
-import {type ScriptParams} from '../../config/config.js';
+import {log, removeDuplicates, safeMatch, type SelectFrom} from '@augment-vir/common';
+import {createHash} from 'node:crypto';
+import {type CodeOwners, type ScriptParams} from '../../config/config.js';
 
 const codeOwnersComments = {
     start: '<!-- code owners start -->',
@@ -7,8 +8,31 @@ const codeOwnersComments = {
 };
 
 const codeOwnersCommentsRegExp = new RegExp(
-    `${codeOwnersComments.start}[^<]*${codeOwnersComments.end}`,
+    `${codeOwnersComments.start}[\\S\\s]*?${codeOwnersComments.end}`,
 );
+
+type DetermineNewPullRequestBodyParams = Readonly<{
+    author: string | undefined;
+    body: string;
+    codeOwners: Readonly<CodeOwners>;
+    pullRequestUrl: string;
+}>;
+
+type CreateCodeOwnerEntriesParams = Readonly<{
+    author: string | undefined;
+    codeOwners: Readonly<CodeOwners>;
+    pullRequestUrl: string;
+}>;
+
+type CodeOwnedFileLink = Readonly<{
+    filePath: string;
+    url: string;
+}>;
+
+type CodeOwnerEntry = Readonly<{
+    username: string;
+    fileLinks: ReadonlyArray<CodeOwnedFileLink>;
+}>;
 
 export async function insertCodeOwners({
     config,
@@ -31,6 +55,7 @@ export async function insertCodeOwners({
             pullRequest: {
                 number: true;
                 body: true;
+                html_url: true;
                 user: {
                     login: true;
                 };
@@ -44,12 +69,14 @@ export async function insertCodeOwners({
         return;
     }
 
-    const newBody = determineNewPullRequestBody(
-        Object.keys(codeOwners).filter((codeOwner) => codeOwner !== pullRequest.user?.login),
-        pullRequest.body || '',
-    );
+    const newBody = determineNewPullRequestBody({
+        author: pullRequest.user?.login,
+        body: pullRequest.body || '',
+        codeOwners,
+        pullRequestUrl: pullRequest.html_url,
+    });
 
-    if (!newBody) {
+    if (newBody == undefined) {
         log.success('No code owners to insert.');
         return;
     }
@@ -64,11 +91,18 @@ export async function insertCodeOwners({
     log.success('Code owners inserted.');
 }
 
-function determineNewPullRequestBody(
-    codeOwners: ReadonlyArray<string>,
-    body: string,
-): string | undefined {
-    const codeOwnersInsertionIndex = findCodeOwnersInsertionIndex(body || '');
+export function determineNewPullRequestBody({
+    author,
+    body,
+    codeOwners,
+    pullRequestUrl,
+}: DetermineNewPullRequestBodyParams): string | undefined {
+    const codeOwnerEntries = createCodeOwnerEntries({
+        author,
+        codeOwners,
+        pullRequestUrl,
+    });
+    const codeOwnersInsertionIndex = findCodeOwnersInsertionIndex(body);
 
     const codeOwnersString = [
         codeOwnersComments.start,
@@ -76,13 +110,14 @@ function determineNewPullRequestBody(
         '**',
         'Code owners',
         '**',
-        ': ',
-        codeOwners.map((username) => `@${username}`).join(', '),
+        ':',
+        '\n',
+        codeOwnerEntries.map(createCodeOwnerSection).join('\n'),
         '\n',
         codeOwnersComments.end,
     ].join('');
 
-    if (!codeOwners.length) {
+    if (!codeOwnerEntries.length) {
         if (body.includes(codeOwnersComments.start)) {
             return body.replace(codeOwnersCommentsRegExp, '');
         } else {
@@ -99,6 +134,73 @@ function determineNewPullRequestBody(
             body.slice(codeOwnersInsertionIndex)
         );
     }
+}
+
+function createCodeOwnerEntries({
+    author,
+    codeOwners,
+    pullRequestUrl,
+}: CreateCodeOwnerEntriesParams): CodeOwnerEntry[] {
+    return Object.entries(codeOwners)
+        .filter(([username]) => username !== author)
+        .map(
+            ([
+                username,
+                filePaths,
+            ]) => {
+                return {
+                    username,
+                    fileLinks: removeDuplicates(filePaths).map((filePath) => {
+                        return {
+                            filePath,
+                            url: createPullRequestFileUrl({
+                                filePath,
+                                pullRequestUrl,
+                            }),
+                        };
+                    }),
+                };
+            },
+        );
+}
+
+function createCodeOwnerSection({fileLinks, username}: CodeOwnerEntry): string {
+    return [
+        `@${username}`,
+        '<details>',
+        '<summary>Owned files</summary>',
+        '',
+        ...fileLinks.map(({filePath, url}) => {
+            return `- [${escapeMarkdownLinkText({filePath})}](${url})`;
+        }),
+        '',
+        '</details>',
+    ].join('\n');
+}
+
+function createPullRequestFileUrl({
+    filePath,
+    pullRequestUrl,
+}: Readonly<{
+    filePath: string;
+    pullRequestUrl: string;
+}>): string {
+    return [
+        pullRequestUrl.replace(/\/$/, ''),
+        '/files#diff-',
+        createHash('sha256').update(filePath).digest('hex'),
+    ].join('');
+}
+
+function escapeMarkdownLinkText({
+    filePath,
+}: Readonly<{
+    filePath: string;
+}>): string {
+    return filePath
+        .replaceAll(/\\/g, String.raw`\\`)
+        .replaceAll('[', String.raw`\[`)
+        .replaceAll(']', String.raw`\]`);
 }
 
 function findCodeOwnersInsertionIndex(body: string): number | undefined {
