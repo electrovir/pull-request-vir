@@ -190,8 +190,7 @@ export const pullRequestVirConfigShape = defineShape({
     insertCodeOwners: optionalShape(true),
     /** Arbitrary scripts that will be executed in order on a pull request. */
     scripts: optionalShape([
-        (() => {}) as AnyFunction as TypedFunction<ScriptParams,
-            Promise<void>>,
+        (() => {}) as AnyFunction as TypedFunction<ScriptParams, Promise<void>>,
     ]),
 });
 

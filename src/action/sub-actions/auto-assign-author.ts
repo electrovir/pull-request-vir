@@ -5,20 +5,14 @@ export async function autoAssignAuthor({config, octokit, pullRequest, repo}: Scr
     if (!config.assignToAuthor) {
         log.success('assignToAuthor config is false, skipping auto assignment.');
         return;
-    }
-
-    if (pullRequest.assignees?.length) {
+    } else if (pullRequest.assignees?.length) {
         log.success('The pull request already has assignees, skipping auto assignment.');
         return;
-    }
-
-    if (!pullRequest.user) {
+    } else if (!pullRequest.user) {
         throw new Error(
             `No user associated with pull request #${pullRequest.number}, cannot auto assign.`,
         );
-    }
-
-    if (pullRequest.user.type.toLowerCase() === 'bot') {
+    } else if (pullRequest.user.type.toLowerCase() === 'bot') {
         log.success('The pull request author is a bot, skipping auto assignment.');
         return;
     }

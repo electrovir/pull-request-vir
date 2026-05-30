@@ -7,9 +7,10 @@ module.exports = {
     ],
     words: [
         ...baseConfig.words,
+        'acmr',
+        'blockmerge',
         'hérault',
         'nomerge',
         'notmerge',
-        'blockmerge',
     ],
 };

@@ -51,7 +51,9 @@ export async function requireReviewers({
     }
 
     /** Wait for logging to finish? Cause GitHub Actions jumbles them all up. */
-    await wait({milliseconds: 100});
+    await wait({
+        milliseconds: 100,
+    });
 
     const failedRules = (
         await awaitedBlockingMap(config.reviewRules, async (rule, index) => {
@@ -77,7 +79,9 @@ export async function requireReviewers({
     ).filter(check.isTruthy);
 
     /** Wait for logging to finish? Cause GitHub Actions jumbles them all up. */
-    await wait({milliseconds: 100});
+    await wait({
+        milliseconds: 100,
+    });
 
     if (failedRules.length) {
         log.error('Failed review rules.');
@@ -133,15 +137,11 @@ async function checkReviewRule({
     if (!rule.users || !check.isLengthAtLeast(rule.users, 1)) {
         log.warning(`No users for rule at index '${ruleIndex}'`);
         return undefined;
-    }
-
-    if (rule.users.length === 1 && author && rule.users[0] === author) {
-        log.faint(`Ignoring rule because the author is the only rule user.`);
+    } else if (rule.users.length === 1 && author && rule.users[0] === author) {
+        log.faint('Ignoring rule because the author is the only rule user.');
         logJson(rule, 'faint');
         return undefined;
-    }
-
-    if (
+    } else if (
         rule.codeOwns?.paths?.length &&
         !rule.users.some((username) => codeOwners.includes(username))
     ) {

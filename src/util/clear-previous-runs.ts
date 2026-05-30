@@ -23,7 +23,7 @@ export async function clearPreviousRuns({
     ).data.workflow_runs.filter((workflowRun) => workflowRun.id !== currentRunId);
 
     log.faint(`Found ${previousRuns.length} previous '${workflowName}' runs.`);
-    log.faint(`Deleting them all now...`);
+    log.faint('Deleting them all now...');
 
     await awaitedForEach(previousRuns, async (workflowRun) => {
         log.faint(`Deleting run ${workflowRun.id}...`);

@@ -19,7 +19,9 @@ export function extractEnvVars(): {
     }
     log.faint(`repo dir: ${repoDir}`);
     const repo = githubContext.repo;
-    const token = getInput('token', {trimWhitespace: true});
+    const token = getInput('token', {
+        trimWhitespace: true,
+    });
     if (!token) {
         throw new Error('Missing token GitHub Action input.');
     }

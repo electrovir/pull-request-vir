@@ -18,7 +18,11 @@ export async function getCompleteReviewStatus({
     octokit: Readonly<Octokit>;
     repo: Readonly<GithubRepo>;
 }) {
-    const submittedReviews = await fetchSubmittedReviews({octokit, pullRequest, repo});
+    const submittedReviews = await fetchSubmittedReviews({
+        octokit,
+        pullRequest,
+        repo,
+    });
 
     const requestedReviewers = pullRequest.requested_reviewers || [];
 

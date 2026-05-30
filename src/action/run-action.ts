@@ -8,7 +8,7 @@ import {
     wait,
     type MaybePromise,
 } from '@augment-vir/common';
-import simpleGit from 'simple-git';
+import {simpleGit} from 'simple-git';
 import {type ScriptParams} from '../config/config.js';
 import {type GithubPullRequest} from '../data/github.js';
 import {getCompleteReviewStatus} from '../data/reviews.js';
@@ -44,12 +44,20 @@ async function runAction() {
      * Wait because GitHub is slow to update, which causes race conditions with this action being
      * triggered and it reading the data.
      */
-    await wait({seconds: 10});
+    await wait({
+        seconds: 10,
+    });
 
     try {
         const {branchName, currentRunId, octokit, repo, repoDir, workflowName} = extractEnvVars();
 
-        await clearPreviousRuns({branchName, currentRunId, octokit, repo, workflowName});
+        await clearPreviousRuns({
+            branchName,
+            currentRunId,
+            octokit,
+            repo,
+            workflowName,
+        });
 
         const config = await loadConfig(repoDir);
 
@@ -68,7 +76,11 @@ async function runAction() {
             throw new Error('Aborting checks because Pull Request is a draft.');
         }
 
-        const reviews = await getCompleteReviewStatus({octokit, pullRequest, repo});
+        const reviews = await getCompleteReviewStatus({
+            octokit,
+            pullRequest,
+            repo,
+        });
         log.faint('current approvals');
         logJson(reviews, 'faint');
         const git = simpleGit(repoDir);
@@ -86,7 +98,6 @@ async function runAction() {
         const changedFilePaths = (
             await git.diff([
                 '--name-only',
-                // cspell:ignore ACMR
                 '--diff-filter=ACMR',
                 mergeBase,
                 pullRequest.head.sha,
