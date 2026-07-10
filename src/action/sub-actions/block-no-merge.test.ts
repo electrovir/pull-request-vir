@@ -45,20 +45,22 @@ describe(includesNoMergePhrase.name, () => {
     });
 
     it('checks added lines with local git diff instead of the GitHub patch endpoint', async () => {
-        await blockNoMerge(
-            createBlockNoMergeParams({
-                diffOutput: [
-                    'diff --git a/src/file.ts b/src/file.ts',
-                    'index 1111111..2222222 100644',
-                    '--- a/src/file.ts',
-                    '+++ b/src/file.ts',
-                    '@@ -1 +1,2 @@',
-                    ' const canMerge = true;',
-                    '+const stillCanMerge = true;',
-                ].join('\n'),
-                labels: [],
-                title: 'Ready to merge.',
-            }),
+        await assert.doesNotThrow(() =>
+            blockNoMerge(
+                createBlockNoMergeParams({
+                    diffOutput: [
+                        'diff --git a/src/file.ts b/src/file.ts',
+                        'index 1111111..2222222 100644',
+                        '--- a/src/file.ts',
+                        '+++ b/src/file.ts',
+                        '@@ -1 +1,2 @@',
+                        ' const canMerge = true;',
+                        '+const stillCanMerge = true;',
+                    ].join('\n'),
+                    labels: [],
+                    title: 'Ready to merge.',
+                }),
+            ),
         );
     });
 

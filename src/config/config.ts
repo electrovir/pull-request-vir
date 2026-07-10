@@ -66,9 +66,9 @@ export const reviewRuleWithoutOverridesShape = defineShape({
      * This is useful for defining default reviewers that should only be pulled in when a pull
      * request isn't already covered by a more specific (e.g. code ownership) rule.
      *
-     * Combined with {@link autoAdd} and `codeOwns`, this rule's users are auto-added when: `autoAdd`
-     * is `true` AND (this rule's `codeOwns` matches OR (`isFallback` is `true` AND no other rule
-     * added reviewers)).
+     * Combined with `autoAdd` and `codeOwns`, this rule's users are auto-added when: `autoAdd` is
+     * `true` AND (this rule's `codeOwns` matches OR (`isFallback` is `true` AND no other rule added
+     * reviewers)).
      */
     isFallback: optionalShape(true),
     /**

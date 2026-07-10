@@ -8,13 +8,19 @@ import {SilentError} from '../../silent.error.js';
 import {requireReviewers} from './require-reviewers.js';
 
 describe(requireReviewers.name, () => {
-    async function testRequireReviewers(
-        rules: NonNullable<PullRequestVirConfig['reviewRules']>,
-        reviews: Readonly<PullRequestReviews>,
-        author: string = 'test',
-        changedFiles: string[] = [],
-        codeOwners: Readonly<CodeOwners> = {},
-    ) {
+    async function testRequireReviewers({
+        rules,
+        reviews,
+        author = 'test',
+        changedFiles = [],
+        codeOwners = {},
+    }: Readonly<{
+        rules: NonNullable<PullRequestVirConfig['reviewRules']>;
+        reviews: Readonly<PullRequestReviews>;
+        author?: string;
+        changedFiles?: string[];
+        codeOwners?: Readonly<CodeOwners>;
+    }>) {
         await requireReviewers({
             config: {
                 reviewRules: rules,
@@ -56,18 +62,18 @@ describe(requireReviewers.name, () => {
     itCases(testRequireReviewers, [
         {
             it: 'passes with no rules',
-            inputs: [
-                [],
-                {
+            input: {
+                rules: [],
+                reviews: {
                     a: true,
                 },
-            ],
+            },
             throws: undefined,
         },
         {
             it: 'passes with 1 required review',
-            inputs: [
-                [
+            input: {
+                rules: [
                     {
                         autoAdd: true,
                         required: 1,
@@ -79,16 +85,16 @@ describe(requireReviewers.name, () => {
                         ],
                     },
                 ],
-                {
+                reviews: {
                     a: true,
                 },
-            ],
+            },
             throws: undefined,
         },
         {
             it: 'fails with a missing required review',
-            inputs: [
-                [
+            input: {
+                rules: [
                     {
                         autoAdd: true,
                         required: 2,
@@ -110,18 +116,18 @@ describe(requireReviewers.name, () => {
                         ],
                     },
                 ],
-                {
+                reviews: {
                     a: true,
                 },
-            ],
+            },
             throws: {
                 matchConstructor: SilentError,
             },
         },
         {
             it: 'passes with a missing required review that is overridden',
-            inputs: [
-                [
+            input: {
+                rules: [
                     {
                         autoAdd: true,
                         required: 2,
@@ -143,17 +149,17 @@ describe(requireReviewers.name, () => {
                         ],
                     },
                 ],
-                {
+                reviews: {
                     a: true,
                 },
-                'c',
-            ],
+                author: 'c',
+            },
             throws: undefined,
         },
         {
             it: 'requires a fallback rule when no other rule adds reviewers',
-            inputs: [
-                [
+            input: {
+                rules: [
                     {
                         autoAdd: true,
                         isFallback: true,
@@ -169,16 +175,16 @@ describe(requireReviewers.name, () => {
                         ],
                     },
                 ],
-                {},
-            ],
+                reviews: {},
+            },
             throws: {
                 matchConstructor: SilentError,
             },
         },
         {
             it: 'skips a fallback rule when another rule adds reviewers',
-            inputs: [
-                [
+            input: {
+                rules: [
                     {
                         autoAdd: true,
                         required: 1,
@@ -201,16 +207,16 @@ describe(requireReviewers.name, () => {
                         ],
                     },
                 ],
-                {
+                reviews: {
                     x: true,
                 },
-            ],
+            },
             throws: undefined,
         },
         {
             it: 'requires a fallback rule with matching code ownership even when another rule adds reviewers',
-            inputs: [
-                [
+            input: {
+                rules: [
                     {
                         autoAdd: true,
                         required: 1,
@@ -233,17 +239,16 @@ describe(requireReviewers.name, () => {
                         ],
                     },
                 ],
-                {
+                reviews: {
                     x: true,
                 },
-                'test',
-                [],
-                {
+                author: 'test',
+                codeOwners: {
                     a: [
                         'src/thing.ts',
                     ],
                 },
-            ],
+            },
             throws: {
                 matchConstructor: SilentError,
             },

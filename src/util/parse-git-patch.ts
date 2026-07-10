@@ -30,9 +30,11 @@
 
 const hashRegex = /^From (\S*)/;
 const authorRegex = /^From:\s?([^<].*[^>])?\s+(<(.*)>)?/;
-// eslint-disable-next-line sonarjs/slow-regex
+
+// eslint-disable-next-line sonarjs/super-linear-regex
 const fileNameRegex = /^diff --git "?a\/(.*)"?\s*"?b\/(.*)"?/;
-// eslint-disable-next-line sonarjs/slow-regex
+
+// eslint-disable-next-line sonarjs/super-linear-regex
 const fileLinesRegex = /^@@ -(\d*),?\S* \+(\d*),?/;
 
 export type ParsedPatchModifiedLineType = {

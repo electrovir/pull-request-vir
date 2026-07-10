@@ -264,9 +264,11 @@ function doesRuleAddReviewers({
 }): boolean {
     const rule = resolveRule(rawRule, author);
 
-    if (!rule.users || !check.isLengthAtLeast(rule.users, 1)) {
-        return false;
-    } else if (!isCodeOwnsMatched(rule, codeOwners)) {
+    if (
+        !rule.users ||
+        !check.isLengthAtLeast(rule.users, 1) ||
+        !isCodeOwnsMatched(rule, codeOwners)
+    ) {
         return false;
     }
 

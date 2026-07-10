@@ -2,6 +2,7 @@ import {describe, it} from '@augment-vir/test';
 import {assertValidShape} from 'object-shape-tester';
 import {
     pullRequestVirConfigShape,
+    reviewRuleShape,
     type Config,
     type PullRequestVirConfig,
     type ReviewRule,
@@ -10,6 +11,7 @@ import {
 describe('PullRequestVirConfig', () => {
     it('allows an empty object', () => {
         const testAssignment: PullRequestVirConfig = {};
+        assertValidShape(testAssignment, pullRequestVirConfigShape);
     });
 });
 
@@ -39,6 +41,9 @@ describe('ReviewRule', () => {
                 required: 'all',
             },
         ];
+        goodAssignments.forEach((goodAssignment) => {
+            assertValidShape(goodAssignment, reviewRuleShape);
+        });
     });
 
     it('does not match incorrect values', () => {
@@ -137,6 +142,7 @@ describe('Config', () => {
                 },
             ],
         };
+        assertValidShape(config, pullRequestVirConfigShape);
     });
     it('allows user overrides', () => {
         const config: Config = {
@@ -157,5 +163,6 @@ describe('Config', () => {
                 },
             ],
         };
+        assertValidShape(config, pullRequestVirConfigShape);
     });
 });
