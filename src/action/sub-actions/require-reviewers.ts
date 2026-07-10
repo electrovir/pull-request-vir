@@ -55,6 +55,25 @@ export async function requireReviewers({
         milliseconds: 100,
     });
 
+    const author = pullRequest.user?.login || '';
+    const codeOwnerUsernames = Object.keys(codeOwners);
+
+    /**
+     * Whether any non-fallback rule adds reviewers. Fallback rules only activate when this is
+     * `false`.
+     */
+    const nonFallbackRulesAddReviewers = config.reviewRules.some((rawRule) => {
+        return (
+            !rawRule.isFallback &&
+            doesRuleAddReviewers({
+                rawRule,
+                author,
+                reviews,
+                codeOwners: codeOwnerUsernames,
+            })
+        );
+    });
+
     const failedRules = (
         await awaitedBlockingMap(config.reviewRules, async (rule, index) => {
             const failure = await checkReviewRule({
@@ -63,8 +82,9 @@ export async function requireReviewers({
                 octokit,
                 pullRequest,
                 repo,
-                codeOwners: Object.keys(codeOwners),
+                codeOwners: codeOwnerUsernames,
                 ruleIndex: index,
+                otherRulesAddReviewers: nonFallbackRulesAddReviewers,
             });
             if (!failure) {
                 return undefined;
@@ -100,6 +120,7 @@ async function checkReviewRule({
     repo,
     codeOwners,
     ruleIndex,
+    otherRulesAddReviewers,
 }: {
     reviews: Readonly<PullRequestReviews>;
     rawRule: Readonly<ReviewRule>;
@@ -129,10 +150,17 @@ async function checkReviewRule({
     repo: Readonly<GithubRepo>;
     codeOwners: ReadonlyArray<string>;
     ruleIndex: number;
+    /** Whether any non-fallback rule adds reviewers to the pull request. */
+    otherRulesAddReviewers: boolean;
 }): Promise<undefined | {failureReason: string}> {
     const author = pullRequest.user?.login || '';
-    const ruleOverride = author ? rawRule.userOverrides?.[author] : undefined;
-    const rule = ruleOverride ?? rawRule;
+    const rule = resolveRule(rawRule, author);
+
+    /**
+     * A fallback rule only applies when it is not already satisfied by code ownership and no other
+     * rule added reviewers to the pull request.
+     */
+    const isFallbackActive = !!rule.isFallback && !otherRulesAddReviewers;
 
     if (!rule.users || !check.isLengthAtLeast(rule.users, 1)) {
         log.warning(`No users for rule at index '${ruleIndex}'`);
@@ -141,11 +169,8 @@ async function checkReviewRule({
         log.faint('Ignoring rule because the author is the only rule user.');
         logJson(rule, 'faint');
         return undefined;
-    } else if (
-        rule.codeOwns?.paths?.length &&
-        !rule.users.some((username) => codeOwners.includes(username))
-    ) {
-        /** Ignore this rule because its `codeOwns` field is not matched. */
+    } else if (!isCodeOwnsMatched(rule, codeOwners) && !isFallbackActive) {
+        /** Ignore this rule because its `codeOwns` field is not matched and it is not a fallback. */
         return undefined;
     }
 
@@ -207,4 +232,51 @@ async function checkReviewRule({
     }
 
     return undefined;
+}
+
+function resolveRule(rawRule: Readonly<ReviewRule>, author: string): Readonly<ReviewRule> {
+    const ruleOverride = author ? rawRule.userOverrides?.[author] : undefined;
+    return ruleOverride ?? rawRule;
+}
+
+function isCodeOwnsMatched(rule: Readonly<ReviewRule>, codeOwners: ReadonlyArray<string>): boolean {
+    if (!rule.codeOwns?.paths?.length) {
+        return true;
+    }
+
+    return !!rule.users?.some((username) => codeOwners.includes(username));
+}
+
+/**
+ * Determines whether a rule contributes reviewers to the pull request: it is matched by code
+ * ownership and either auto-adds its users or already has requested reviewers among its users.
+ */
+function doesRuleAddReviewers({
+    rawRule,
+    author,
+    reviews,
+    codeOwners,
+}: {
+    rawRule: Readonly<ReviewRule>;
+    author: string;
+    reviews: Readonly<PullRequestReviews>;
+    codeOwners: ReadonlyArray<string>;
+}): boolean {
+    const rule = resolveRule(rawRule, author);
+
+    if (!rule.users || !check.isLengthAtLeast(rule.users, 1)) {
+        return false;
+    } else if (!isCodeOwnsMatched(rule, codeOwners)) {
+        return false;
+    }
+
+    const relevantUsers = rule.users.filter((user) => user !== author);
+
+    if (!relevantUsers.length) {
+        return false;
+    } else if (rule.autoAdd) {
+        return true;
+    }
+
+    return relevantUsers.some((user) => user in reviews);
 }

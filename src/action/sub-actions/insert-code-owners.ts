@@ -166,9 +166,8 @@ function createCodeOwnerEntries({
 
 function createCodeOwnerSection({fileLinks, username}: CodeOwnerEntry): string {
     return [
-        `@${username}`,
         '<details>',
-        '<summary>Owned files</summary>',
+        `<summary>@${username} Owned files</summary>`,
         '',
         ...fileLinks.map(({filePath, url}) => {
             return `- [${escapeMarkdownLinkText({

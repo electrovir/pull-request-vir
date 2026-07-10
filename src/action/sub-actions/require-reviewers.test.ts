@@ -1,5 +1,9 @@
 import {describe, itCases} from '@augment-vir/test';
-import {type PullRequestReviews, type PullRequestVirConfig} from '../../config/config.js';
+import {
+    type CodeOwners,
+    type PullRequestReviews,
+    type PullRequestVirConfig,
+} from '../../config/config.js';
 import {SilentError} from '../../silent.error.js';
 import {requireReviewers} from './require-reviewers.js';
 
@@ -9,6 +13,7 @@ describe(requireReviewers.name, () => {
         reviews: Readonly<PullRequestReviews>,
         author: string = 'test',
         changedFiles: string[] = [],
+        codeOwners: Readonly<CodeOwners> = {},
     ) {
         await requireReviewers({
             config: {
@@ -44,7 +49,7 @@ describe(requireReviewers.name, () => {
                 repo: 'test',
             },
             reviews,
-            codeOwners: {},
+            codeOwners,
         });
     }
 
@@ -144,6 +149,104 @@ describe(requireReviewers.name, () => {
                 'c',
             ],
             throws: undefined,
+        },
+        {
+            it: 'requires a fallback rule when no other rule adds reviewers',
+            inputs: [
+                [
+                    {
+                        autoAdd: true,
+                        isFallback: true,
+                        required: 1,
+                        codeOwns: {
+                            paths: [
+                                'src/',
+                            ],
+                        },
+                        users: [
+                            'a',
+                            'b',
+                        ],
+                    },
+                ],
+                {},
+            ],
+            throws: {
+                matchConstructor: SilentError,
+            },
+        },
+        {
+            it: 'skips a fallback rule when another rule adds reviewers',
+            inputs: [
+                [
+                    {
+                        autoAdd: true,
+                        required: 1,
+                        users: [
+                            'x',
+                        ],
+                    },
+                    {
+                        autoAdd: true,
+                        isFallback: true,
+                        required: 'all',
+                        codeOwns: {
+                            paths: [
+                                'src/',
+                            ],
+                        },
+                        users: [
+                            'a',
+                            'b',
+                        ],
+                    },
+                ],
+                {
+                    x: true,
+                },
+            ],
+            throws: undefined,
+        },
+        {
+            it: 'requires a fallback rule with matching code ownership even when another rule adds reviewers',
+            inputs: [
+                [
+                    {
+                        autoAdd: true,
+                        required: 1,
+                        users: [
+                            'x',
+                        ],
+                    },
+                    {
+                        autoAdd: true,
+                        isFallback: true,
+                        required: 'all',
+                        codeOwns: {
+                            paths: [
+                                'src/',
+                            ],
+                        },
+                        users: [
+                            'a',
+                            'b',
+                        ],
+                    },
+                ],
+                {
+                    x: true,
+                },
+                'test',
+                [],
+                {
+                    a: [
+                        'src/thing.ts',
+                    ],
+                },
+            ],
+            throws: {
+                matchConstructor: SilentError,
+            },
         },
     ]);
 });
