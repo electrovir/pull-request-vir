@@ -23,6 +23,7 @@ export async function requireReviewers({
         ScriptParams,
         {
             config: {
+                assignToAuthor: true;
                 reviewRules: true;
             };
             octokit: {
@@ -38,6 +39,9 @@ export async function requireReviewers({
             pullRequest: {
                 number: true;
                 user: {
+                    login: true;
+                };
+                assignees: {
                     login: true;
                 };
             };
@@ -56,6 +60,16 @@ export async function requireReviewers({
     });
 
     const author = pullRequest.user?.login || '';
+    /**
+     * `autoAssignAuthor` assigns the author to a pull request that has no assignees, but that
+     * happens through the API and isn't reflected in this already-fetched pull request. Mirror its
+     * outcome here so `appliesTo` rules match on the same run.
+     */
+    const assignees = pullRequest.assignees?.length
+        ? pullRequest.assignees.map((assignee) => assignee.login)
+        : config.assignToAuthor && author
+          ? [author]
+          : [];
     const codeOwnerUsernames = Object.keys(codeOwners);
 
     /**
@@ -68,6 +82,7 @@ export async function requireReviewers({
             doesRuleAddReviewers({
                 rawRule,
                 author,
+                assignees,
                 reviews,
                 codeOwners: codeOwnerUsernames,
             })
@@ -82,6 +97,7 @@ export async function requireReviewers({
                 octokit,
                 pullRequest,
                 repo,
+                assignees,
                 codeOwners: codeOwnerUsernames,
                 ruleIndex: index,
                 otherRulesAddReviewers: nonFallbackRulesAddReviewers,
@@ -118,6 +134,7 @@ async function checkReviewRule({
     octokit,
     pullRequest,
     repo,
+    assignees,
     codeOwners,
     ruleIndex,
     otherRulesAddReviewers,
@@ -148,6 +165,7 @@ async function checkReviewRule({
         >
     >;
     repo: Readonly<GithubRepo>;
+    assignees: ReadonlyArray<string>;
     codeOwners: ReadonlyArray<string>;
     ruleIndex: number;
     /** Whether any non-fallback rule adds reviewers to the pull request. */
@@ -164,6 +182,9 @@ async function checkReviewRule({
 
     if (!rule.users || !check.isLengthAtLeast(rule.users, 1)) {
         log.warning(`No users for rule at index '${ruleIndex}'`);
+        return undefined;
+    } else if (!isAppliesToMatched(rule, assignees)) {
+        /** Ignore this rule because none of the pull request's assignees matches `appliesTo`. */
         return undefined;
     } else if (rule.users.length === 1 && author && rule.users[0] === author) {
         log.faint('Ignoring rule because the author is the only rule user.');
@@ -239,6 +260,18 @@ function resolveRule(rawRule: Readonly<ReviewRule>, author: string): Readonly<Re
     return ruleOverride ?? rawRule;
 }
 
+/**
+ * Whether any of the pull request's assignees satisfies the rule's `appliesTo` restriction. A rule
+ * without `appliesTo` applies to every pull request.
+ */
+function isAppliesToMatched(rule: Readonly<ReviewRule>, assignees: ReadonlyArray<string>): boolean {
+    if (!rule.appliesTo?.length) {
+        return true;
+    }
+
+    return rule.appliesTo.some((username) => assignees.includes(username));
+}
+
 function isCodeOwnsMatched(rule: Readonly<ReviewRule>, codeOwners: ReadonlyArray<string>): boolean {
     if (!rule.codeOwns?.paths?.length) {
         return true;
@@ -254,11 +287,13 @@ function isCodeOwnsMatched(rule: Readonly<ReviewRule>, codeOwners: ReadonlyArray
 function doesRuleAddReviewers({
     rawRule,
     author,
+    assignees,
     reviews,
     codeOwners,
 }: {
     rawRule: Readonly<ReviewRule>;
     author: string;
+    assignees: ReadonlyArray<string>;
     reviews: Readonly<PullRequestReviews>;
     codeOwners: ReadonlyArray<string>;
 }): boolean {
@@ -267,6 +302,7 @@ function doesRuleAddReviewers({
     if (
         !rule.users ||
         !check.isLengthAtLeast(rule.users, 1) ||
+        !isAppliesToMatched(rule, assignees) ||
         !isCodeOwnsMatched(rule, codeOwners)
     ) {
         return false;

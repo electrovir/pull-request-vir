@@ -144,6 +144,23 @@ describe('Config', () => {
         };
         assertValidShape(config, pullRequestVirConfigShape);
     });
+    it('allows assignee restrictions', () => {
+        const config: Config = {
+            reviewRules: [
+                {
+                    autoAdd: true,
+                    required: 1,
+                    users: [
+                        'a',
+                    ],
+                    appliesTo: [
+                        'b',
+                    ],
+                },
+            ],
+        };
+        assertValidShape(config, pullRequestVirConfigShape);
+    });
     it('allows user overrides', () => {
         const config: Config = {
             reviewRules: [

@@ -1,3 +1,4 @@
+import {assert} from '@augment-vir/assert';
 import {describe, it} from '@augment-vir/test';
 import {assertValidShape} from 'object-shape-tester';
 import {pullRequestVirConfigShape} from '../config/config.js';
@@ -33,6 +34,38 @@ describe(sanitizeConfig.name, () => {
                 ],
             }),
             pullRequestVirConfigShape,
+        );
+    });
+
+    it('dedupes appliesTo usernames', () => {
+        const sanitized = sanitizeConfig({
+            reviewRules: [
+                {
+                    users: [
+                        'a',
+                    ],
+                },
+                {
+                    users: [
+                        'a',
+                    ],
+                    appliesTo: [
+                        'b',
+                        'b',
+                        '',
+                    ],
+                },
+            ],
+        });
+
+        assert.deepEquals(
+            (sanitized.reviewRules || []).map((reviewRule) => reviewRule.appliesTo),
+            [
+                [],
+                [
+                    'b',
+                ],
+            ],
         );
     });
 });

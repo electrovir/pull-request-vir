@@ -34,6 +34,13 @@ type docs: https://electrovir.github.io/pull-request-vir
                         paths: [/^src\/backend\//],
                     },
                 },
+                {
+                    // always request this reviewer on pull requests assigned to 'junior-dev'
+                    autoAdd: true,
+                    users: ['senior-dev'],
+                    required: 1,
+                    appliesTo: ['junior-dev'],
+                },
             ],
         };
         ```

@@ -81,6 +81,7 @@ export function sanitizeConfig(rawConfig: PullRequestVirConfig): PullRequestVirC
             const sanitizedRuleWithoutOverrides: ReviewRuleWithoutOverrides = {
                 ...omitObjectKeys(reviewRule, ['userOverrides']),
                 users: removeDuplicates(reviewRule.users || []).filter(check.isTruthy),
+                appliesTo: removeDuplicates(reviewRule.appliesTo || []).filter(check.isTruthy),
                 codeOwns: reviewRule.codeOwns
                     ? mapObjectValues(reviewRule.codeOwns, (key, paths) => {
                           return paths.filter(

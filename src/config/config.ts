@@ -66,9 +66,9 @@ export const reviewRuleWithoutOverridesShape = defineShape({
      * This is useful for defining default reviewers that should only be pulled in when a pull
      * request isn't already covered by a more specific (e.g. code ownership) rule.
      *
-     * Combined with `autoAdd` and `codeOwns`, this rule's users are auto-added when: `autoAdd` is
-     * `true` AND (this rule's `codeOwns` matches OR (`isFallback` is `true` AND no other rule added
-     * reviewers)).
+     * Combined with `autoAdd`, `appliesTo`, and `codeOwns`, this rule's users are auto-added when:
+     * `autoAdd` is `true` AND an `appliesTo` username is assigned AND (this rule's `codeOwns`
+     * matches OR (`isFallback` is `true` AND no other rule added reviewers)).
      */
     isFallback: optionalShape(true),
     /**
@@ -85,6 +85,24 @@ export const reviewRuleWithoutOverridesShape = defineShape({
      * @default 'all'
      */
     required: optionalShape(unionShape(exactShape('all'), 1)),
+    /**
+     * Restricts the rule to pull requests that have at least one of these usernames as an assignee.
+     * If omitted or empty, the rule applies to all pull requests.
+     *
+     * A pull request with no assignees counts as assigned to its author, matching what
+     * `assignToAuthor` does.
+     *
+     * @example
+     *
+     * ```ts
+     * // require a review from 'reviewer' on every pull request assigned to 'assignee'
+     * {
+     *     users: ['reviewer'],
+     *     appliesTo: ['assignee'],
+     * }
+     * ```
+     */
+    appliesTo: optionalShape(['']),
     /**
      * The rule will only be required if the pull request changed file paths matching any of the
      * given strings or regular expressions, ignoring the `notPaths` strings or regular
