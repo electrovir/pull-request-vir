@@ -165,7 +165,7 @@ export function doesRuleAddReviewers({
         return false;
     } else if (rule.autoAdd) {
         return true;
+    } else {
+        return relevantUsers.some((user) => user in reviews);
     }
-
-    return relevantUsers.some((user) => user in reviews);
 }

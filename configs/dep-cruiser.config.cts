@@ -9,12 +9,6 @@ const baseConfig = defineConfig({
                 'src/index\\.ts$',
             ],
         },
-        'not-to-unresolvable': {
-            to: [
-                // idk why this dep is marked as "unresolvable"
-                '@octokit/openapi-types',
-            ],
-        },
     },
     omitRules: [
         // enter rule names here to omit
