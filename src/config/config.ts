@@ -72,6 +72,16 @@ export const reviewRuleWithoutOverridesShape = defineShape({
      */
     isFallback: optionalShape(true),
     /**
+     * Marks this rule's users as primary reviewers. When the rule applies to a pull request, its
+     * users are written into the pull request's description under a "Primary reviewers" line, which
+     * both `checkPrimaryReviewer` and [review-vir](https://github.com/electrovir/review-vir) read.
+     *
+     * All of the rule's users are marked as primary, regardless of `required`. The description is
+     * left alone if it already mentions a primary reviewer that this action didn't insert, so a
+     * manually chosen primary reviewer always wins.
+     */
+    isPrimary: optionalShape(true),
+    /**
      * A list of user names to consider as reviewers. No `@` or other prefix is necessary, just type
      * their username directly.
      *

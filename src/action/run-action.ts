@@ -22,8 +22,8 @@ import {loadConfig} from './load-config.js';
 import {autoAssignAuthor} from './sub-actions/auto-assign-author.js';
 import {blockNoMerge} from './sub-actions/block-no-merge.js';
 import {checkPrimaryReviewers} from './sub-actions/check-primary-reviewers.js';
-import {insertCodeOwners} from './sub-actions/insert-code-owners.js';
 import {requireReviewers} from './sub-actions/require-reviewers.js';
+import {updatePullRequestBody} from './sub-actions/update-pull-request-body.js';
 import {waitForParent} from './sub-actions/wait-for-parent-pull-request.js';
 
 /**
@@ -31,7 +31,7 @@ import {waitForParent} from './sub-actions/wait-for-parent-pull-request.js';
  * as possible before they fail.
  */
 const subActions: ReadonlyArray<(params: ScriptParams) => MaybePromise<void>> = [
-    insertCodeOwners,
+    updatePullRequestBody,
     autoAssignAuthor,
     blockNoMerge,
     requireReviewers,

@@ -10,6 +10,14 @@ import {type PullRequestReviews, type ReviewRule, type ScriptParams} from '../..
 import {type GithubPullRequest, type GithubRepo, type Octokit} from '../../data/github.js';
 import {SilentError} from '../../silent.error.js';
 import {logJson} from '../../util/log-json.js';
+import {
+    determineReviewRuleContext,
+    isAppliesToMatched,
+    isCodeOwnsMatched,
+    isFallbackActive,
+    resolveRule,
+    type ReviewRuleContext,
+} from '../review-rules.js';
 
 export async function requireReviewers({
     config,
@@ -59,34 +67,11 @@ export async function requireReviewers({
         milliseconds: 100,
     });
 
-    const author = pullRequest.user?.login || '';
-    /**
-     * `autoAssignAuthor` assigns the author to a pull request that has no assignees, but that
-     * happens through the API and isn't reflected in this already-fetched pull request. Mirror its
-     * outcome here so `appliesTo` rules match on the same run.
-     */
-    const assignees = pullRequest.assignees?.length
-        ? pullRequest.assignees.map((assignee) => assignee.login)
-        : config.assignToAuthor && author
-          ? [author]
-          : [];
-    const codeOwnerUsernames = Object.keys(codeOwners);
-
-    /**
-     * Whether any non-fallback rule adds reviewers. Fallback rules only activate when this is
-     * `false`.
-     */
-    const nonFallbackRulesAddReviewers = config.reviewRules.some((rawRule) => {
-        return (
-            !rawRule.isFallback &&
-            doesRuleAddReviewers({
-                rawRule,
-                author,
-                assignees,
-                reviews,
-                codeOwners: codeOwnerUsernames,
-            })
-        );
+    const context = determineReviewRuleContext({
+        config,
+        pullRequest,
+        reviews,
+        codeOwners,
     });
 
     const failedRules = (
@@ -97,10 +82,8 @@ export async function requireReviewers({
                 octokit,
                 pullRequest,
                 repo,
-                assignees,
-                codeOwners: codeOwnerUsernames,
+                context,
                 ruleIndex: index,
-                otherRulesAddReviewers: nonFallbackRulesAddReviewers,
             });
             if (!failure) {
                 return undefined;
@@ -134,10 +117,8 @@ async function checkReviewRule({
     octokit,
     pullRequest,
     repo,
-    assignees,
-    codeOwners,
+    context,
     ruleIndex,
-    otherRulesAddReviewers,
 }: {
     reviews: Readonly<PullRequestReviews>;
     rawRule: Readonly<ReviewRule>;
@@ -165,39 +146,29 @@ async function checkReviewRule({
         >
     >;
     repo: Readonly<GithubRepo>;
-    assignees: ReadonlyArray<string>;
-    codeOwners: ReadonlyArray<string>;
+    context: ReviewRuleContext;
     ruleIndex: number;
-    /** Whether any non-fallback rule adds reviewers to the pull request. */
-    otherRulesAddReviewers: boolean;
 }): Promise<undefined | {failureReason: string}> {
-    const author = pullRequest.user?.login || '';
-    const rule = resolveRule(rawRule, author);
-
-    /**
-     * A fallback rule only applies when it is not already satisfied by code ownership and no other
-     * rule added reviewers to the pull request.
-     */
-    const isFallbackActive = !!rule.isFallback && !otherRulesAddReviewers;
+    const rule = resolveRule(rawRule, context.author);
 
     if (!rule.users || !check.isLengthAtLeast(rule.users, 1)) {
         log.warning(`No users for rule at index '${ruleIndex}'`);
         return undefined;
-    } else if (!isAppliesToMatched(rule, assignees)) {
+    } else if (!isAppliesToMatched(rule, context.assignees)) {
         /** Ignore this rule because none of the pull request's assignees matches `appliesTo`. */
         return undefined;
-    } else if (rule.users.length === 1 && author && rule.users[0] === author) {
+    } else if (rule.users.length === 1 && context.author && rule.users[0] === context.author) {
         log.faint('Ignoring rule because the author is the only rule user.');
         logJson(rule, 'faint');
         return undefined;
-    } else if (!isCodeOwnsMatched(rule, codeOwners) && !isFallbackActive) {
+    } else if (!isCodeOwnsMatched(rule, context.codeOwners) && !isFallbackActive(rule, context)) {
         /** Ignore this rule because its `codeOwns` field is not matched and it is not a fallback. */
         return undefined;
     }
 
     const reviewers = rule.users.reduce(
         (accum, user) => {
-            if (user === author) {
+            if (user === context.author) {
                 return accum;
             }
 
@@ -253,68 +224,4 @@ async function checkReviewRule({
     }
 
     return undefined;
-}
-
-function resolveRule(rawRule: Readonly<ReviewRule>, author: string): Readonly<ReviewRule> {
-    const ruleOverride = author ? rawRule.userOverrides?.[author] : undefined;
-    return ruleOverride ?? rawRule;
-}
-
-/**
- * Whether any of the pull request's assignees satisfies the rule's `appliesTo` restriction. A rule
- * without `appliesTo` applies to every pull request.
- */
-function isAppliesToMatched(rule: Readonly<ReviewRule>, assignees: ReadonlyArray<string>): boolean {
-    if (!rule.appliesTo?.length) {
-        return true;
-    }
-
-    return rule.appliesTo.some((username) => assignees.includes(username));
-}
-
-function isCodeOwnsMatched(rule: Readonly<ReviewRule>, codeOwners: ReadonlyArray<string>): boolean {
-    if (!rule.codeOwns?.paths?.length) {
-        return true;
-    }
-
-    return !!rule.users?.some((username) => codeOwners.includes(username));
-}
-
-/**
- * Determines whether a rule contributes reviewers to the pull request: it is matched by code
- * ownership and either auto-adds its users or already has requested reviewers among its users.
- */
-function doesRuleAddReviewers({
-    rawRule,
-    author,
-    assignees,
-    reviews,
-    codeOwners,
-}: {
-    rawRule: Readonly<ReviewRule>;
-    author: string;
-    assignees: ReadonlyArray<string>;
-    reviews: Readonly<PullRequestReviews>;
-    codeOwners: ReadonlyArray<string>;
-}): boolean {
-    const rule = resolveRule(rawRule, author);
-
-    if (
-        !rule.users ||
-        !check.isLengthAtLeast(rule.users, 1) ||
-        !isAppliesToMatched(rule, assignees) ||
-        !isCodeOwnsMatched(rule, codeOwners)
-    ) {
-        return false;
-    }
-
-    const relevantUsers = rule.users.filter((user) => user !== author);
-
-    if (!relevantUsers.length) {
-        return false;
-    } else if (rule.autoAdd) {
-        return true;
-    }
-
-    return relevantUsers.some((user) => user in reviews);
 }

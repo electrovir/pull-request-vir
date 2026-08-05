@@ -40,6 +40,8 @@ type docs: https://electrovir.github.io/pull-request-vir
                     users: ['senior-dev'],
                     required: 1,
                     appliesTo: ['junior-dev'],
+                    // write 'senior-dev' into the description as the primary reviewer
+                    isPrimary: true,
                 },
             ],
         };

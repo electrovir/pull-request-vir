@@ -1,6 +1,7 @@
-import {log, removeDuplicates, safeMatch, type SelectFrom} from '@augment-vir/common';
+import {removeDuplicates, safeMatch} from '@augment-vir/common';
 import {createHash} from 'node:crypto';
-import {type CodeOwners, type ScriptParams} from '../../config/config.js';
+import {type CodeOwners} from '../../config/config.js';
+import {primaryReviewersComments} from './insert-primary-reviewers.js';
 
 const codeOwnersComments = {
     start: '<!-- code owners start -->',
@@ -33,63 +34,6 @@ type CodeOwnerEntry = Readonly<{
     username: string;
     fileLinks: ReadonlyArray<CodeOwnedFileLink>;
 }>;
-
-export async function insertCodeOwners({
-    config,
-    octokit,
-    pullRequest,
-    codeOwners,
-    repo,
-}: Readonly<
-    SelectFrom<
-        ScriptParams,
-        {
-            repo: {
-                owner: true;
-                repo: true;
-            };
-            config: {
-                insertCodeOwners: true;
-            };
-            octokit: true;
-            pullRequest: {
-                number: true;
-                body: true;
-                html_url: true;
-                user: {
-                    login: true;
-                };
-            };
-            codeOwners: true;
-        }
-    >
->): Promise<void> {
-    if (!config.insertCodeOwners) {
-        log.success('Skipping code owners insertion.');
-        return;
-    }
-
-    const newBody = determineNewPullRequestBody({
-        author: pullRequest.user?.login,
-        body: pullRequest.body || '',
-        codeOwners,
-        pullRequestUrl: pullRequest.html_url,
-    });
-
-    if (newBody == undefined) {
-        log.success('No code owners to insert.');
-        return;
-    }
-
-    await octokit.rest.pulls.update({
-        owner: repo.owner,
-        pull_number: pullRequest.number,
-        repo: repo.repo,
-        body: newBody,
-    });
-
-    log.success('Code owners inserted.');
-}
 
 export function determineNewPullRequestBody({
     author,
@@ -209,7 +153,13 @@ function findCodeOwnersInsertionIndex(body: string): number | undefined {
         return undefined;
     }
 
-    const [primaryReviewerMatch] = safeMatch(body, /primary reviewers?\*?\*?:/i);
+    /**
+     * Insert after the whole inserted primary reviewers block, if there is one, so that its markers
+     * and its parser-required trailing blank line stay intact.
+     */
+    const [primaryReviewerMatch] = body.includes(primaryReviewersComments.end)
+        ? [primaryReviewersComments.end]
+        : safeMatch(body, /primary reviewers?\*?\*?:/i);
 
     if (primaryReviewerMatch) {
         const primaryReviewerIndex = body.indexOf(primaryReviewerMatch);
