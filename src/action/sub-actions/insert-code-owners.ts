@@ -51,10 +51,7 @@ export function determineNewPullRequestBody({
     const codeOwnersString = [
         codeOwnersComments.start,
         '\n',
-        '**',
-        'Code owners',
-        '**',
-        ':',
+        '## Code Owners',
         '\n',
         codeOwnerEntries.map(createCodeOwnerSection).join('\n'),
         '\n',

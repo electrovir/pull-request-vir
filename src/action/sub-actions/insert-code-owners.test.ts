@@ -5,7 +5,7 @@ const pullRequestUrl = 'https://github.com/electrovir/pull-request-vir/pull/7';
 
 const expectedCodeOwnersBlock = [
     '<!-- code owners start -->',
-    '**Code owners**:',
+    '## Code Owners',
     '<details>',
     '<summary>@electrovir Owned files</summary>',
     '',
