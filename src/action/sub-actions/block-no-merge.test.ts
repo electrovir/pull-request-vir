@@ -45,8 +45,8 @@ describe(includesNoMergePhrase.name, () => {
     });
 
     it('checks added lines with local git diff instead of the GitHub patch endpoint', async () => {
-        await assert.doesNotThrow(() =>
-            blockNoMerge(
+        await assert.doesNotThrow(() => {
+            return blockNoMerge(
                 createBlockNoMergeParams({
                     diffOutput: [
                         'diff --git a/src/file.ts b/src/file.ts',
@@ -60,8 +60,8 @@ describe(includesNoMergePhrase.name, () => {
                     labels: [],
                     title: 'Ready to merge.',
                 }),
-            ),
-        );
+            );
+        });
     });
 
     it('fails when local git diff contains a no merge phrase in an added line', async () => {
@@ -106,8 +106,11 @@ function createBlockNoMergeParams({
         octokit: {
             rest: {
                 pulls: {
-                    get: () =>
-                        Promise.reject(new Error('GitHub patch endpoint should not be used.')),
+                    get: () => {
+                        return Promise.reject(
+                            new Error('GitHub patch endpoint should not be used.'),
+                        );
+                    },
                 },
             },
         },

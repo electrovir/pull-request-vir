@@ -84,10 +84,11 @@ export function sanitizeConfig(rawConfig: PullRequestVirConfig): PullRequestVirC
                 appliesTo: removeDuplicates(reviewRule.appliesTo || []).filter(check.isTruthy),
                 codeOwns: reviewRule.codeOwns
                     ? mapObjectValues(reviewRule.codeOwns, (key, paths) => {
-                          return paths.filter(
-                              (path) =>
-                                  path && (check.isString(path) || check.instanceOf(path, RegExp)),
-                          );
+                          return paths.filter((path) => {
+                              return (
+                                  path && (check.isString(path) || check.instanceOf(path, RegExp))
+                              );
+                          });
                       })
                     : undefined,
                 required: reviewRule.required ?? 'all',

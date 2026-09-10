@@ -3,11 +3,20 @@ import {type components} from '@octokit/openapi-types';
 import {defineShape, enumShape, unionShape} from 'object-shape-tester';
 
 /**
+ * An instance of GitHub's Octokit API. Can be used to send requests to GitHub.
+ *
+ * @category Shape
+ */
+export type Octokit = ReturnType<typeof getOctokit>;
+
+/**
  * A pull request
  *
  * @category Shape
  */
-export type GithubPullRequest = components['schemas']['pull-request-simple'];
+export type GithubPullRequest = Awaited<
+    ReturnType<Octokit['rest']['pulls']['list']>
+>['data'][number];
 
 /**
  * An individual GitHub user.
@@ -15,13 +24,6 @@ export type GithubPullRequest = components['schemas']['pull-request-simple'];
  * @category Shape
  */
 export type GithubUser = components['schemas']['simple-user'];
-
-/**
- * An instance of GitHub's Octokit API. Can be used to send requests to GitHub.
- *
- * @category Shape
- */
-export type Octokit = ReturnType<typeof getOctokit>;
 
 /**
  * A GitHub repo's name and owner.

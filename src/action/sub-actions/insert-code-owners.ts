@@ -1,15 +1,11 @@
 import {removeDuplicates, safeMatch} from '@augment-vir/common';
+import {codeOwnersMarkdown, createCodeOwnersMarkdownBlock} from '@review-vir/common';
 import {createHash} from 'node:crypto';
 import {type CodeOwners} from '../../config/config.js';
 import {primaryReviewersComments} from './insert-primary-reviewers.js';
 
-const codeOwnersComments = {
-    start: '<!-- code owners start -->',
-    end: '<!-- code owners end -->',
-};
-
 const codeOwnersCommentsRegExp = new RegExp(
-    String.raw`${codeOwnersComments.start}[\S\s]*?${codeOwnersComments.end}`,
+    String.raw`${codeOwnersMarkdown.blockStart}[\S\s]*?${codeOwnersMarkdown.blockEnd}`,
 );
 
 type DetermineNewPullRequestBodyParams = Readonly<{
@@ -48,23 +44,17 @@ export function determineNewPullRequestBody({
     });
     const codeOwnersInsertionIndex = findCodeOwnersInsertionIndex(body);
 
-    const codeOwnersString = [
-        codeOwnersComments.start,
-        '\n',
-        '## Code Owners',
-        '\n',
+    const codeOwnersString = createCodeOwnersMarkdownBlock(
         codeOwnerEntries.map(createCodeOwnerSection).join('\n'),
-        '\n',
-        codeOwnersComments.end,
-    ].join('');
+    );
 
     if (!codeOwnerEntries.length) {
-        if (body.includes(codeOwnersComments.start)) {
+        if (body.includes(codeOwnersMarkdown.blockStart)) {
             return body.replace(codeOwnersCommentsRegExp, '');
         } else {
             return undefined;
         }
-    } else if (body.includes(codeOwnersComments.start)) {
+    } else if (body.includes(codeOwnersMarkdown.blockStart)) {
         return body.replace(codeOwnersCommentsRegExp, codeOwnersString);
     } else if (codeOwnersInsertionIndex == undefined) {
         return body + codeOwnersString;

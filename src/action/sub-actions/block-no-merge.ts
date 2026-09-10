@@ -63,11 +63,13 @@ const baseNoMergePhrases = [
     'block merge',
 ];
 
-const expandedNoMergePhrases = baseNoMergePhrases.flatMap((phrase) => [
-    phrase,
-    phrase.replace(' ', '-'),
-    phrase.replace(' ', ''),
-]);
+const expandedNoMergePhrases = baseNoMergePhrases.flatMap((phrase) => {
+    return [
+        phrase,
+        phrase.replace(' ', '-'),
+        phrase.replace(' ', ''),
+    ];
+});
 
 const noMergeRegExp = new RegExp(String.raw`\b(?:${expandedNoMergePhrases.join('|')})\b`, 'i');
 
