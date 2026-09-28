@@ -54,17 +54,46 @@ export function determineNewPullRequestBody({
         } else {
             return undefined;
         }
-    } else if (body.includes(codeOwnersMarkdown.blockStart)) {
-        return body.replace(codeOwnersCommentsRegExp, codeOwnersString);
-    } else if (codeOwnersInsertionIndex == undefined) {
-        return body + codeOwnersString;
-    } else {
-        return (
-            body.slice(0, codeOwnersInsertionIndex) +
-            codeOwnersString +
-            body.slice(codeOwnersInsertionIndex)
-        );
     }
+
+    const existingBlock = codeOwnersCommentsRegExp.exec(body);
+
+    if (existingBlock) {
+        return insertCodeOwnersString({
+            before: body.slice(0, existingBlock.index),
+            codeOwnersString,
+            after: body.slice(existingBlock.index + existingBlock[0].length),
+        });
+    } else if (codeOwnersInsertionIndex == undefined) {
+        return insertCodeOwnersString({
+            before: body,
+            codeOwnersString,
+            after: '',
+        });
+    } else {
+        return insertCodeOwnersString({
+            before: body.slice(0, codeOwnersInsertionIndex),
+            codeOwnersString,
+            after: body.slice(codeOwnersInsertionIndex),
+        });
+    }
+}
+
+/** Separates the code owners block from any preceding text with a blank line. */
+function insertCodeOwnersString({
+    before,
+    codeOwnersString,
+    after,
+}: Readonly<{
+    before: string;
+    codeOwnersString: string;
+    after: string;
+}>): string {
+    return [
+        before ? before.replace(/\n{0,2}$/, '\n\n') : '',
+        codeOwnersString,
+        after,
+    ].join('');
 }
 
 function createCodeOwnerEntries({

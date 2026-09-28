@@ -64,6 +64,7 @@ describe(determineNewPullRequestBody.name, () => {
                 'Intro.',
                 '',
                 '**Primary reviewer**: @lead',
+                '',
                 expectedCodeOwnersBlock,
                 'Rest.',
             ].join('\n'),
@@ -89,8 +90,30 @@ describe(determineNewPullRequestBody.name, () => {
             },
             expect: [
                 'Intro.',
+                '',
                 expectedCodeOwnersBlock,
                 'Rest.',
+            ].join('\n'),
+        },
+        {
+            it: 'does not add more blank lines before an appended code owners block',
+            input: {
+                author: 'author',
+                body: 'Intro.\n\n',
+                codeOwners: {
+                    electrovir: [
+                        'src/action/run-action.ts',
+                    ],
+                    'other-owner': [
+                        'src/action/sub-actions/insert-code-owners.ts',
+                    ],
+                },
+                pullRequestUrl,
+            },
+            expect: [
+                'Intro.',
+                '',
+                expectedCodeOwnersBlock,
             ].join('\n'),
         },
         {
