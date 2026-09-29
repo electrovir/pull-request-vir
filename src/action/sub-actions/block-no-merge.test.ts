@@ -100,13 +100,17 @@ function createBlockNoMergeParams({
             blockNoMerge: true,
         },
         git: {
-            diff: () => Promise.resolve(diffOutput),
-            raw: () => Promise.resolve('merge-base-sha\n'),
+            diff() {
+                return Promise.resolve(diffOutput);
+            },
+            raw() {
+                return Promise.resolve('merge-base-sha\n');
+            },
         },
         octokit: {
             rest: {
                 pulls: {
-                    get: () => {
+                    get() {
                         return Promise.reject(
                             new Error('GitHub patch endpoint should not be used.'),
                         );
